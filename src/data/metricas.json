@@ -1,0 +1,34 @@
+[
+  {
+    "id": "paciente",
+    "titulo": "Pacientes",
+    "valor": "150",
+    "descripcion": "Total de pacientes registrados",
+    "tendencia": "positiva",
+    "icono": "👥"
+  },
+  {
+    "id": "cita",
+    "titulo": "Citas Hoy",
+    "valor": "12",
+    "descripcion": "Citas programadas para hoy",
+    "tendencia": "neutra",
+    "icono": "📅"
+  },
+  {
+    "id": "consulta",
+    "titulo": "Consultas Pendientes",
+    "valor": "5",
+    "descripcion": "Por revisar en el sistema",
+    "tendencia": "negativa",
+    "icono": "⏳"
+  },
+  {
+    "id": "disponibilidad",
+    "titulo": "Disponibilidad",
+    "valor": "85%",
+    "descripcion": "Capacidad actual del centro",
+    "tendencia": "positiva",
+    "icono": "🏥"
+  }
+]
