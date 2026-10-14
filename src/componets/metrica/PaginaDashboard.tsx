@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { MetricCard } from "./MetricCard"; // El componente que corregimos antes
 import { StatusBadge } from "./StatusBadge"; // El componente del toggle
-import type { Metrica } from "../types";
-import dataMetricas from "../data/metricas.json";
+import type { Metrica } from "../../types";
+import dataMetricas from "../../data/metricas.json";
 
 export function PaginaDashboard() {
   // Estado global del sistema, para interactuar con StatusBadge

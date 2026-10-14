@@ -1,5 +1,4 @@
-import type { Metrica, Tendencia } from "../types";
-
+import type { Metrica, Tendencia } from "../../types";
 interface MetricCardProps {
   metrica: Metrica;
 }
