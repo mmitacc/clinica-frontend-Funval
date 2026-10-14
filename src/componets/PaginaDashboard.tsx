@@ -2,6 +2,7 @@ import { useState } from "react";
 import { MetricCard } from "./MetricCard"; // El componente que corregimos antes
 import { StatusBadge } from "./StatusBadge"; // El componente del toggle
 import type { Metrica } from "../types";
+import dataMetricas from "../data/metricas.json";
 
 export function PaginaDashboard() {
   // Estado global del sistema, para interactuar con StatusBadge
@@ -10,42 +11,10 @@ export function PaginaDashboard() {
   // Estado para los pacientes registrados para el día de hoy
   const [pacientes, setPacientes] = useState<number>(10); // Número inicial de pacientes
 
-  // Definimos el conjunto de 4 objetos con metricas del día
-  const metricaPacientes: Metrica = {
-    id: "paciente",
-    titulo: "Pacientes",
-    valor: String(pacientes),
-    descripcion: "Total de pacientes registrados",
-    tendencia: "positiva",
-    icono: "👥",
-  };
-
-  const metricaCitas: Metrica = {
-    id: "cita",
-    titulo: "Citas Hoy",
-    valor: "12",
-    descripcion: "Citas programadas para hoy",
-    tendencia: "neutra",
-    icono: "📅",
-  };
-
-  const metricaConsultas: Metrica = {
-    id: "consulta",
-    titulo: "Consultas Pendientes",
-    valor: "5",
-    descripcion: "Por revisar en el sistema",
-    tendencia: "negativa",
-    icono: "⏳",
-  };
-
-  const metricaDisponibilidad: Metrica = {
-    id: "disponibiliadad",
-    titulo: "Disponibilidad",
-    valor: "85%",
-    descripcion: "Capacidad actual del centro",
-    tendencia: "positiva",
-    icono: "🏥",
-  };
+  // Estado de 4 objetos con metricas del día
+  const [metricas, setMetricas] = useState<Metrica[]>(
+    dataMetricas as Metrica[],
+  );
 
   // Formateando fecha del día para mostrar en dashboard
   const fechaFormateada = new Intl.DateTimeFormat("es-ES", {
@@ -74,7 +43,8 @@ export function PaginaDashboard() {
               Panel de Control
             </h1>
             <p className="text-slate-500 mt-1 whitespace-pre-line">
-              {"MONITOREO DE LA CLÍNICA\n"}{fechaHoy}
+              {"MONITOREO DE LA CLÍNICA\n"}
+              {fechaHoy}
             </p>
           </div>
           <div className="flex items-center gap-4 bg-white p-3 rounded-lg shadow-sm border border-slate-200">
@@ -119,10 +89,9 @@ export function PaginaDashboard() {
 
         {/* REQUISITO: Cuadrícula con las 4 métricas integradas */}
         <main className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <MetricCard metrica={metricaPacientes} />
-          <MetricCard metrica={metricaCitas} />
-          <MetricCard metrica={metricaConsultas} />
-          <MetricCard metrica={metricaDisponibilidad} />
+          {metricas.map((m) => (
+            <MetricCard metrica={m} />
+          ))}
         </main>
       </div>
     </div>

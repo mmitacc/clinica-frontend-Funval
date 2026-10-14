@@ -1,0 +1,52 @@
+[
+  {
+    "id": "pac-001",
+    "nombre": "Carlos",
+    "apellido": "Mendoza",
+    "email": "carlos.mendoza@email.com",
+    "telefono": "+34 612 345 678",
+    "especialidadAsignada": "Cardiología",
+    "ultimaCita": "2026-10-10",
+    "estado": "activo"
+  },
+  {
+    "id": "pac-002",
+    "nombre": "María Elena",
+    "apellido": "Gómez",
+    "email": "maria.gomez@email.com",
+    "telefono": "+34 623 456 789",
+    "especialidadAsignada": "Pediatría",
+    "ultimaCita": "2026-09-28",
+    "estado": "inactivo"
+  },
+  {
+    "id": "pac-003",
+    "nombre": "Juan Pablo",
+    "apellido": "Rodríguez",
+    "email": "juan.rodriguez@email.com",
+    "telefono": "+34 634 567 890",
+    "especialidadAsignada": "Dermatología",
+    "ultimaCita": "2026-10-12",
+    "estado": "en_espera"
+  },
+  {
+    "id": "pac-004",
+    "nombre": "Ana Sofía",
+    "apellido": "Martínez",
+    "email": "ana.martinez@email.com",
+    "telefono": "+34 645 678 901",
+    "especialidadAsignada": "Neurología",
+    "ultimaCita": "2026-10-05",
+    "estado": "activo"
+  },
+  {
+    "id": "pac-005",
+    "nombre": "Luis Alberto",
+    "apellido": "Vargas",
+    "email": "luis.vargas@email.com",
+    "telefono": "+34 656 789 012",
+    "especialidadAsignada": "Traumatología",
+    "ultimaCita": "2026-08-15",
+    "estado": "inactivo"
+  }
+]
