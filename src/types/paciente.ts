@@ -1,4 +1,4 @@
-export type EstadoPaciente = "activo" | "inactivo" | "en_espera";
+export type EstadoPaciente = "todos" | "activo" | "inactivo" | "en_espera";
 
 export interface Paciente {
   id: string;

@@ -12,12 +12,16 @@ interface PacienteCardProps {
   paciente: Paciente;
   onVerDetalles?: (id: string) => void;
   onEditar?: (id: string) => void;
+  onEliminar?: (id: string) => void; // <-- NUEVA PROP
+  onCambiarEstado?: (id: string, nuevoEstado: Paciente["estado"]) => void; // <-- NUEVA PROP
 }
 
 export function PacienteCard({
   paciente,
   onEditar,
   onVerDetalles,
+  onEliminar,
+  onCambiarEstado,
 }: PacienteCardProps) {
   const {
     id,
@@ -29,12 +33,13 @@ export function PacienteCard({
     ultimaCita,
     estado,
   } = paciente;
-  // Obtener iniciales automáticamente (ej: "Sofía Morales" -> "SM")
+
   const iniciales = `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase();
+
   return (
     <article className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg max-w-sm w-full">
       <div>
-        {/* Header: Avatar, Name, ID, BadgeEstado */}
+        {/* Header: Avatar, Nombre, ID y Selector de Estado */}
         <header className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div
@@ -44,16 +49,50 @@ export function PacienteCard({
               <BadgeEstado estado={estado} texto={iniciales} />
             </div>
             <div className="min-w-0">
-              <h3 className="truncate text-base font-semibold text-slate-900 group-hover:text-slate-700 transition-colors">
+              <h3
+                title={`${nombre} ${apellido}`}
+                className="truncate text-base font-semibold text-slate-900 group-hover:text-slate-700 transition-colors"
+              >
                 {nombre} {apellido}
               </h3>
-              <p className="text-xs font-mono text-slate-400">ID: {id}</p>
             </div>
           </div>
 
-          {/* Tu componente modular de estado */}
-          <div className="shrink-0 text-xs font-medium px-2.5 py-1 rounded-full bg-slate-50 ring-1 ring-slate-200">
-            <BadgeEstado estado={estado} texto={estado} />
+          {/* Selector de Estado Interactivo */}
+          <div className="shrink-0 relative">
+            <select
+              value={estado}
+              onChange={(e) =>
+                onCambiarEstado?.(id, e.target.value as Paciente["estado"])
+              }
+              className={`appearance-none cursor-pointer text-xs font-semibold pl-3 pr-7 py-1.5 rounded-full ring-1 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/45 ${
+                estado === "activo"
+                  ? "bg-green-50 text-green-700 ring-green-600/20 hover:bg-green-100"
+                  : estado === "en_espera"
+                    ? "bg-amber-50 text-amber-700 ring-amber-600/20 hover:bg-amber-100"
+                    : "bg-slate-100 text-slate-700 ring-slate-600/20 hover:bg-slate-200"
+              }`}
+            >
+              <option value="activo">activo</option>
+              <option value="en_espera">en_espera</option>
+              <option value="inactivo">inactivo</option>
+            </select>
+            {/* Pequeño icono de flecha hacia abajo personalizado */}
+            <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-slate-400">
+              <svg
+                className="h-3 w-3"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                />
+              </svg>
+            </div>
           </div>
         </header>
 
@@ -93,7 +132,7 @@ export function PacienteCard({
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+                  d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25 2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
                 />
               </svg>
               <a
@@ -136,7 +175,7 @@ export function PacienteCard({
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              stroke-width="1.75"
+              strokeWidth="1.75"
             >
               <path
                 strokeLinecap="round"
@@ -153,7 +192,25 @@ export function PacienteCard({
           <button
             type="button"
             onClick={() => onVerDetalles?.(id)}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 transition-all hover:bg-blue-100 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-blue-600/50"
+            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-2 text-xs font-semibold text-blue-700 transition-all hover:bg-blue-100 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-blue-600/50"
+          >
+            Ver ficha
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onEditar?.(id)}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-medium text-slate-700 transition-all hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-slate-400/40"
+          >
+            Editar
+          </button>
+
+          {/* Botón de Eliminar Agregado */}
+          <button
+            type="button"
+            onClick={() => onEliminar?.(id)}
+            className="inline-flex items-center justify-center rounded-lg border border-red-200 bg-red-50 p-2 text-xs font-medium text-red-600 transition-all hover:bg-red-100 hover:border-red-300 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-red-500/40"
+            title="Eliminar paciente"
           >
             <svg
               className="h-3.5 w-3.5"
@@ -165,35 +222,9 @@ export function PacienteCard({
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-1.816A2.25 2.25 0 0013.812 1.5h-3.623a2.25 2.25 0 00-2.25 2.255V3.39m7.5 0V1.5"
               />
             </svg>
-            Ver ficha
-          </button>
-          <button
-            type="button"
-            onClick={() => onEditar?.(id)}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-all hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-slate-400/40"
-          >
-            <svg
-              className="h-3.5 w-3.5 text-slate-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
-              />
-            </svg>
-            Editar
           </button>
         </div>
       </footer>
