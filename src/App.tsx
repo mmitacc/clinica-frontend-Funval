@@ -1,6 +1,6 @@
 // import { useState } from "react";
 // import { PaginaDashboard } from "./componets/metrica/PaginaDashboard";
-import { PaginaPacientes } from "./componets/paciente/PaginaPacientes";
+import { PaginaPacientes } from "./pages/PaginaPacientes";
 import "./App.css";
 
 function App() {

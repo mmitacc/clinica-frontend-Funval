@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { BuscadorPacientes } from "./BuscadorPacientes";
-import { PacienteCard } from "./PacienteCard";
-import type { Paciente } from "../../types/paciente";
-import dataPacientes from "../../data/pacientes.json"; // 5 pacientes de ejemplo
-import { ModalNuevoPaciente } from "./ModalNuevoPaciente";
+import { BuscadorPacientes } from "../componets/paciente/BuscadorPacientes";
+import { PacienteCard } from "../componets/paciente/PacienteCard";
+import type { Paciente } from "../types/paciente";
+import dataPacientes from "../data/pacientes.json"; // 5 pacientes de ejemplo
+import { ModalNuevoPaciente } from "../componets/paciente/ModalNuevoPaciente";
 
 export const PaginaPacientes: React.FC = () => {
   // Estado local nativo compatible con React 19.2
