@@ -4,9 +4,9 @@ import { z } from "zod";
 const horaRegex = /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/;
 
 export const citaSchema = z.object({
-  pacienteNombre: z
+  pacienteId: z
     .string()
-    .min(3, { message: "El nombre debe tener al menos 3 caracteres" }),
+    .min(1, { message: "Debe seleccionar un paciente de la lista" }),
 
   medicoId: z.string().min(1, { message: "Debe seleccionar un médico" }),
 
