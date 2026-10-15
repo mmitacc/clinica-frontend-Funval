@@ -3,32 +3,113 @@ import { BuscadorPacientes } from "./BuscadorPacientes";
 import { PacienteCard } from "./PacienteCard";
 import type { Paciente } from "../../types/paciente";
 import dataPacientes from "../../data/pacientes.json"; // 5 pacientes de ejemplo
+import { ModalNuevoPaciente } from "./ModalNuevoPaciente";
 
 export const PaginaPacientes: React.FC = () => {
   // Estado local nativo compatible con React 19.2
   const [pacientes, setPacientes] = useState<Paciente[]>(
     dataPacientes as Paciente[],
   );
-  const [busqueda, setBusqueda] = useState<string>("");
 
+  // Filtros para pacientes
+  // - Variables de estado para los filtros combinados
+  const [busqueda, setBusqueda] = useState<string>("");
+  const [estado, setEstado] = useState<string>("todos");
+  // - Lógica para los filtros combinados
+  const pacientesFiltrados = pacientes
+    .filter(
+      (p) =>
+        (p.nombre.toLowerCase().includes(busqueda.toLowerCase().trim()) ||
+          p.apellido.toLowerCase().includes(busqueda.toLowerCase().trim())) &&
+        (estado === "todos" || p.estado === estado),
+    )
+    .sort((a, b) => a.nombre.localeCompare(b.nombre));
+  // - Eventos de cambio de estado para los filtros
+  const handleEstadoChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
+    setEstado(e.target.value);
+
+  // Agregar un nuevo paciente con una ventana emergente
+  const [modalAbierto, setModalAbierto] = useState<boolean>(false);
+  const [nuevoPaciente, setNuevoPaciente] = useState({
+    nombre: "",
+    apellido: "",
+    email: "",
+    telefono: "",
+    especialidadAsignada: "General",
+  });
+
+  const handleGuardarPaciente = (e: React.SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    // Expresión regular robusta para Email (Obliga a tener texto + @ + texto + . + mínimo 2 letras)
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(nuevoPaciente.email.trim())) {
+      alert(
+        "Por favor, introduce un correo electrónico válido con su extensión (Ej: .com, .es).",
+      );
+      return;
+    }
+    // Expresión regular corregida para Teléfono
+    const telefonoRegex = /^\+?[0-9\s]{9,15}$/;
+    if (!telefonoRegex.test(nuevoPaciente.telefono.trim())) {
+      alert(
+        "El formato del teléfono no es válido. Debe tener entre 9 y 15 dígitos.",
+      );
+      return;
+    }
+    // Generar un ID correlativo automático (ej: "pac-006")
+    const numerosId = pacientes.map((p) =>
+      parseInt(p.id.replace("pac-", ""), 10),
+    );
+    const siguienteNumero = Math.max(...numerosId, 0) + 1;
+    const nuevoId = `pac-${String(siguienteNumero).padStart(3, "0")}`;
+
+    const pacienteFinal: Paciente = {
+      id: nuevoId,
+      nombre: nuevoPaciente.nombre,
+      apellido: nuevoPaciente.apellido,
+      email: nuevoPaciente.email,
+      telefono: nuevoPaciente.telefono,
+      especialidadAsignada: nuevoPaciente.especialidadAsignada,
+      ultimaCita: new Date().toISOString().split("T")[0], // Fecha de hoy (2026-10-14)
+      estado: "activo",
+    };
+
+    setPacientes((prev) => [...prev, pacienteFinal]);
+    setModalAbierto(false); // Cerrar ventana
+    setNuevoPaciente({
+      nombre: "",
+      apellido: "",
+      email: "",
+      telefono: "",
+      especialidadAsignada: "General",
+    }); // Resetear
+  };
+  // --------------------
+
+  // Eliminar un Paciente
+  const handleEliminar = (id: string) => {
+    if (window.confirm("¿Seguro que deseas eliminar este paciente?")) {
+      setPacientes((prev) => prev.filter((p) => p.id !== id));
+    }
+  };
+
+  // Editar el estado de un Paciente
+  const handleCambiarEstado = (id: string, nuevoEstado: Paciente["estado"]) => {
+    setPacientes((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, estado: nuevoEstado } : p)),
+    );
+  };
+
+  // Mostrar o visualizar en el futuro la ficha del paciente
   const handleVerDetalles = (id: string) => {
     console.log("Ver ficha del paciente con ID:", id);
   };
 
+  // Editar un paciente seleccionado
   const handleEditar = (id: string) => {
     console.log("Editar paciente con ID:", id);
   };
-
-  // Filtrado reactivo en tiempo real
-  const pacientesFiltrados = pacientes.filter((paciente) => {
-    const termino = busqueda.toLowerCase().trim();
-    return (
-      paciente.nombre.toLowerCase().includes(termino) ||
-      paciente.apellido.toLowerCase().includes(termino) ||
-      paciente.especialidadAsignada.toLowerCase().includes(termino) ||
-      paciente.id.toLowerCase().includes(termino)
-    );
-  });
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-6 md:p-10">
@@ -66,6 +147,7 @@ export const PaginaPacientes: React.FC = () => {
           {/* Botón Nuevo Paciente */}
           <button
             type="button"
+            onClick={() => setModalAbierto(true)}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/40 active:scale-[0.98]"
           >
             <svg
@@ -88,17 +170,26 @@ export const PaginaPacientes: React.FC = () => {
         {/* Barra de Herramientas (Buscador y Contador) */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
           <BuscadorPacientes value={busqueda} onChange={setBusqueda} />
-
+          <div className="relative max-w-md">
+            <select
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              value={estado}
+              onChange={handleEstadoChange}
+            >
+              <option value="todos">Estado: Todos</option>
+              <option value="activo">Estado: Activo</option>
+              <option value="inactivo">Estado: Inactivo</option>
+              <option value="en_espera">Estado: En espera</option>
+            </select>
+          </div>
           <div className="text-xs font-medium text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 self-start sm:self-auto">
-            Mostrando{" "}
             <span className="font-semibold text-slate-800">
               {pacientesFiltrados.length}
             </span>{" "}
-            de{" "}
+            Pacientes encontrados, del total de{" "}
             <span className="font-semibold text-slate-800">
               {pacientes.length}
-            </span>{" "}
-            pacientes
+            </span>
           </div>
         </div>
 
@@ -111,6 +202,8 @@ export const PaginaPacientes: React.FC = () => {
                 paciente={paciente}
                 onVerDetalles={handleVerDetalles}
                 onEditar={handleEditar}
+                onEliminar={handleEliminar}
+                onCambiarEstado={handleCambiarEstado}
               />
             ))}
           </div>
@@ -141,6 +234,15 @@ export const PaginaPacientes: React.FC = () => {
             </p>
           </div>
         )}
+        {/* ********************************************************************* */}
+        <ModalNuevoPaciente
+          isOpen={modalAbierto}
+          onClose={() => setModalAbierto(false)}
+          onSubmit={handleGuardarPaciente}
+          nuevoPaciente={nuevoPaciente}
+          setNuevoPaciente={setNuevoPaciente}
+        />
+        {/* ********************************************************************* */}
       </div>
     </div>
   );
