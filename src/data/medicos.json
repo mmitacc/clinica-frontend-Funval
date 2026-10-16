@@ -1,0 +1,26 @@
+[
+  {
+    "id": "med-001",
+    "nombre": "Alejandro",
+    "apellido": "Castro",
+    "especialidad": "Cardiología"
+  },
+  {
+    "id": "med-002",
+    "nombre": "Beatriz",
+    "apellido": "Navarro",
+    "especialidad": "Traumatología"
+  },
+  {
+    "id": "med-003",
+    "nombre": "Ricardo",
+    "apellido": "San Martín",
+    "especialidad": "Dermatología"
+  },
+  {
+    "id": "med-004",
+    "nombre": "Elena",
+    "apellido": "Rostova",
+    "especialidad": "Neurología"
+  }
+]
