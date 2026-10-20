@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import { BuscadorPacientes } from "../componets/paciente/BuscadorPacientes";
 import { PacienteCard } from "../componets/paciente/PacienteCard";
-import type { EstadoPaciente, NuevoPacienteForm, Paciente } from "../types/paciente";
+import type {
+  EstadoPaciente,
+  NuevoPacienteForm,
+  Paciente,
+} from "../types/paciente";
 import { ModalNuevoPaciente } from "../componets/paciente/ModalNuevoPaciente";
 import { api } from "../lib/axios";
 
-export const PaginaPacientes: React.FC = () => {
+export default function PaginaPacientes() {
   // - Variables de estado para Cargar data de pacientes
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -332,4 +336,4 @@ export const PaginaPacientes: React.FC = () => {
       </div>
     </div>
   );
-};
+}

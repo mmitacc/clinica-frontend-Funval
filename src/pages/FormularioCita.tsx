@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { citaSchema } from "../../schemas/citaSchema";
-import type { CitaFormData } from "../../schemas/citaSchema";
-import useMedicos from "../hooks/useMedicos";
-import usePacientes from "../hooks/usePacientes";
+import { citaSchema } from "../schemas/citaSchema";
+import type { CitaFormData } from "../schemas/citaSchema";
+import useMedicos from "../componets/hooks/useMedicos";
+import usePacientes from "../componets/hooks/usePacientes";
 
 export default function FormularioCita() {
   const { medicos, cargando: cargandoMedicos } = useMedicos();

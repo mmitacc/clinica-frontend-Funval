@@ -5,7 +5,7 @@ import type { Metrica } from "../types";
 import type { Consulta } from "../types/Consulta";
 import { api } from "../lib/axios";
 
-export function PaginaDashboard() {
+export default function PaginaDashboard() {
   // Estado global del sistema, para interactuar con StatusBadge
   const [enMantenimiento, setEnMantenimiento] = useState<boolean>(false);
 
@@ -119,33 +119,6 @@ export function PaginaDashboard() {
             </button>
           </div>
         </header>
-
-        {/* Panel de Control de Pacientes (Única métrica dinámica) */}
-        <section className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="text-sm font-medium text-slate-600">
-            Modificar contador rápido:{" "}
-            <span className="font-bold text-slate-900">
-              {totalPacientes} Pacientes
-            </span>
-          </div>
-          {/* REQUISITO: Botones +/- para modificar el valor de Pacientes */}
-          <div className="flex gap-2">
-            <button
-              onClick={() =>
-                setTotalPacientes(totalPacientes === 0 ? 0 : totalPacientes - 1)
-              }
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg transition-colors border border-slate-300"
-            >
-              − Reducir
-            </button>
-            <button
-              onClick={() => setTotalPacientes(totalPacientes + 1)}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-colors shadow-sm"
-            >
-              ＋ Incrementar
-            </button>
-          </div>
-        </section>
 
         {/* REQUISITO: Cuadrícula con las 4 métricas integradas */}
         <main className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
