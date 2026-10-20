@@ -1,12 +1,31 @@
-export type EstadoPaciente = "todos" | "activo" | "inactivo" | "en_espera";
+export type EstadoPaciente = "todos" | "ACTIVO" | "INACTIVO" | "EN_ESPERA";
+export type TipoSangre =
+  | "O+"
+  | "O-"
+  | "A+"
+  | "A-"
+  | "B+"
+  | "B-"
+  | "AB+"
+  | "AB-";
 
 export interface Paciente {
-  id: string;
-  nombre: string;
-  apellido: string;
-  email: string;
+  id: string | number;
+  nombres: string;
+  apellidos: string;
   telefono: string;
-  especialidadAsignada: string;
-  ultimaCita: string;
+  email: string;
+  masculino: boolean;
+  fechanacimiento: string;
+  tiposangre: TipoSangre;
+  alergias: string;
   estado: EstadoPaciente;
+  registerdate?: string;
+  especialidadAsignada?: string;
+  ultimaCita?: string;
 }
+
+export type NuevoPacienteForm = Omit<
+  Paciente,
+  "id" | "registerdate" | "especialidadAsignada"
+>;

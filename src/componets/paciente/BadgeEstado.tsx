@@ -7,9 +7,9 @@ interface BadgeEstadoProps {
 
 export function BadgeEstado({ estado, texto }: BadgeEstadoProps) {
   const colorStatusBadge: Record<string, string> = {
-    activo: "text-green-500",
-    inactivo: "text-gray-400",
-    en_espera: "text-amber-500",
+    ACTIVO: "text-green-500",
+    INACTIVO: "text-gray-400",
+    EN_ESPERA: "text-amber-500",
   };
   return (
     <div>

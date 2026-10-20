@@ -10,10 +10,14 @@ import { BadgeEstado } from "./BadgeEstado";
 
 interface PacienteCardProps {
   paciente: Paciente;
-  onVerDetalles?: (id: string) => void;
-  onEditar?: (id: string) => void;
-  onEliminar?: (id: string) => void; // <-- NUEVA PROP
-  onCambiarEstado?: (id: string, nuevoEstado: Paciente["estado"]) => void; // <-- NUEVA PROP
+  // Corregido: id acepta string | number para alinearse con la nueva interfaz
+  onVerDetalles?: (id: string | number) => void;
+  onEditar?: (id: string | number) => void;
+  onEliminar?: (id: string | number) => void;
+  onCambiarEstado?: (
+    id: string | number,
+    nuevoEstado: Paciente["estado"],
+  ) => void;
 }
 
 export function PacienteCard({
@@ -25,16 +29,18 @@ export function PacienteCard({
 }: PacienteCardProps) {
   const {
     id,
-    nombre,
-    apellido,
+    nombres,
+    apellidos,
     email,
     telefono,
     especialidadAsignada,
     ultimaCita,
     estado,
+    masculino,
+    tiposangre,
   } = paciente;
 
-  const iniciales = `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase();
+  const iniciales = `${nombres.charAt(0)}${apellidos.charAt(0)}`.toUpperCase();
 
   return (
     <article className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg max-w-sm w-full">
@@ -42,19 +48,28 @@ export function PacienteCard({
         {/* Header: Avatar, Nombre, ID y Selector de Estado */}
         <header className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
+            {/* Dinámico: Cambia el degradado del Avatar según el género (masculino/femenino) */}
             <div
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-300 to-slate-50 text-xl font-bold tracking-wide shadow-inner"
+              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xl font-bold tracking-wide shadow-inner bg-gradient-to-br ${
+                masculino
+                  ? "from-blue-200 to-slate-50 text-blue-700"
+                  : "from-pink-200 to-slate-50 text-pink-700"
+              }`}
               aria-hidden="true"
             >
               <BadgeEstado estado={estado} texto={iniciales} />
             </div>
             <div className="min-w-0">
               <h3
-                title={`${nombre} ${apellido}`}
+                title={`${nombres} ${apellidos}`}
                 className="truncate text-base font-semibold text-slate-900 group-hover:text-slate-700 transition-colors"
               >
-                {nombre} {apellido}
+                {nombres} {apellidos}
               </h3>
+              {/* Muestra de forma limpia el tipo de sangre debajo del nombre */}
+              <span className="inline-block text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md mt-0.5">
+                Tipo de Sangre: {tiposangre || "N/A"}
+              </span>
             </div>
           </div>
 
@@ -66,18 +81,17 @@ export function PacienteCard({
                 onCambiarEstado?.(id, e.target.value as Paciente["estado"])
               }
               className={`appearance-none cursor-pointer text-xs font-semibold pl-3 pr-7 py-1.5 rounded-full ring-1 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/45 ${
-                estado === "activo"
+                estado === "ACTIVO"
                   ? "bg-green-50 text-green-700 ring-green-600/20 hover:bg-green-100"
-                  : estado === "en_espera"
+                  : estado === "EN_ESPERA"
                     ? "bg-amber-50 text-amber-700 ring-amber-600/20 hover:bg-amber-100"
                     : "bg-slate-100 text-slate-700 ring-slate-600/20 hover:bg-slate-200"
               }`}
             >
-              <option value="activo">activo</option>
-              <option value="en_espera">en_espera</option>
-              <option value="inactivo">inactivo</option>
+              <option value="ACTIVO">activo</option>
+              <option value="EN_ESPERA">en_espera</option>
+              <option value="INACTIVO">inactivo</option>
             </select>
-            {/* Pequeño icono de flecha hacia abajo personalizado */}
             <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-slate-400">
               <svg
                 className="h-3 w-3"
@@ -113,7 +127,7 @@ export function PacienteCard({
           </svg>
           <span className="truncate">
             <span className="text-slate-400 font-normal">Especialidad:</span>{" "}
-            {especialidadAsignada}
+            {especialidadAsignada || "No asignada"}
           </span>
         </div>
 
@@ -185,9 +199,12 @@ export function PacienteCard({
             </svg>
             Última cita:
           </span>
-          <time className="font-medium text-slate-700">{ultimaCita}</time>
+          <time className="font-medium text-slate-700">
+            {ultimaCita || "Sin citas"}
+          </time>
         </div>
 
+        {/* Botones de acción completados */}
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -200,20 +217,11 @@ export function PacienteCard({
           <button
             type="button"
             onClick={() => onEditar?.(id)}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-medium text-slate-700 transition-all hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-slate-400/40"
-          >
-            Editar
-          </button>
-
-          {/* Botón de Eliminar Agregado */}
-          <button
-            type="button"
-            onClick={() => onEliminar?.(id)}
-            className="inline-flex items-center justify-center rounded-lg border border-red-200 bg-red-50 p-2 text-xs font-medium text-red-600 transition-all hover:bg-red-100 hover:border-red-300 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-red-500/40"
-            title="Eliminar paciente"
+            className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white p-2 text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900 active:scale-[0.98]"
+            title="Editar paciente"
           >
             <svg
-              className="h-3.5 w-3.5"
+              className="h-4 w-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -222,7 +230,28 @@ export function PacienteCard({
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-1.816A2.25 2.25 0 0013.812 1.5h-3.623a2.25 2.25 0 00-2.25 2.255V3.39m7.5 0V1.5"
+                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+              />
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onEliminar?.(id)}
+            className="inline-flex items-center justify-center rounded-lg border border-red-100 bg-red-50 p-2 text-red-600 transition-all hover:bg-red-100 active:scale-[0.98]"
+            title="Eliminar paciente"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
               />
             </svg>
           </button>
