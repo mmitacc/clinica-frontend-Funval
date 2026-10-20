@@ -1,20 +1,78 @@
-import { useState } from "react";
-import { MetricCard } from "./MetricCard"; // El componente que corregimos antes
-import { StatusBadge } from "./StatusBadge"; // El componente del toggle
-import type { Metrica } from "../../types";
-import dataMetricas from "../../data/metricas.json";
+import { useEffect, useState } from "react";
+import { MetricCard } from "../componets/metrica/MetricCard";
+import { StatusBadge } from "../componets/metrica/StatusBadge";
+import type { Metrica } from "../types";
+import type { Consulta } from "../types/Consulta";
+import { api } from "../lib/axios";
 
 export function PaginaDashboard() {
   // Estado global del sistema, para interactuar con StatusBadge
   const [enMantenimiento, setEnMantenimiento] = useState<boolean>(false);
 
-  // Estado para los pacientes registrados para el día de hoy
-  const [pacientes, setPacientes] = useState<number>(10); // Número inicial de pacientes
+  // Estado para los pacientes registrados
+  const [totalPacientes, setTotalPacientes] = useState<number>(0);
+  useEffect(() => {
+    api.get("/pacientes").then((res) => {
+      setTotalPacientes(res.data.total ?? 0);
+    });
+  }, []);
 
-  // Estado de 4 objetos con metricas del día
-  const [metricas, setMetricas] = useState<Metrica[]>(
-    dataMetricas as Metrica[],
-  );
+  // Estado para los citas registradas
+  const [totalConsultas, setTotalConsultas] = useState<Consulta[]>([]);
+  useEffect(() => {
+    api.get("/consultas").then((res) => {
+      setTotalConsultas(res.data.data ?? []);
+    });
+  }, []);
+  // Citas Programadas
+  const hoy = new Date();
+  const fechaHoyString = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
+  const citasHoy = totalConsultas.filter((consulta) => {
+    return (
+      consulta.fecha === fechaHoyString && consulta.estado === "PROGRAMADA"
+    );
+  });
+  // Consultas completadas hoy
+  const programadasHoy = totalConsultas.filter((consulta) => {
+    return (
+      consulta.fecha === fechaHoyString && consulta.estado === "PROGRAMADA"
+    );
+  });
+  // Data de Metricas Clínicas
+  const metricasClinica: Metrica[] = [
+    {
+      id: "paciente",
+      titulo: "Pacientes",
+      valor: totalPacientes,
+      descripcion: "Total de pacientes registrados",
+      tendencia: "positiva",
+      icono: "👥",
+    },
+    {
+      id: "cita",
+      titulo: "Citas Hoy",
+      valor: citasHoy.length,
+      descripcion: "Citas programadas para hoy",
+      tendencia: "neutra",
+      icono: "📅",
+    },
+    {
+      id: "consulta",
+      titulo: "Consultas Pendientes",
+      valor: programadasHoy.length,
+      descripcion: "Por revisar en el sistema",
+      tendencia: "negativa",
+      icono: "⏳",
+    },
+    {
+      id: "disponibilidad",
+      titulo: "Disponibilidad",
+      valor: "85%",
+      descripcion: "Capacidad actual del centro",
+      tendencia: "positiva",
+      icono: "🏥",
+    },
+  ];
 
   // Formateando fecha del día para mostrar en dashboard
   const fechaFormateada = new Intl.DateTimeFormat("es-ES", {
@@ -67,19 +125,21 @@ export function PaginaDashboard() {
           <div className="text-sm font-medium text-slate-600">
             Modificar contador rápido:{" "}
             <span className="font-bold text-slate-900">
-              {pacientes} Pacientes
+              {totalPacientes} Pacientes
             </span>
           </div>
           {/* REQUISITO: Botones +/- para modificar el valor de Pacientes */}
           <div className="flex gap-2">
             <button
-              onClick={() => setPacientes(pacientes === 0 ? 0 : pacientes - 1)}
+              onClick={() =>
+                setTotalPacientes(totalPacientes === 0 ? 0 : totalPacientes - 1)
+              }
               className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg transition-colors border border-slate-300"
             >
               − Reducir
             </button>
             <button
-              onClick={() => setPacientes(pacientes + 1)}
+              onClick={() => setTotalPacientes(totalPacientes + 1)}
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-colors shadow-sm"
             >
               ＋ Incrementar
@@ -89,7 +149,7 @@ export function PaginaDashboard() {
 
         {/* REQUISITO: Cuadrícula con las 4 métricas integradas */}
         <main className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {metricas.map((m) => (
+          {metricasClinica.map((m) => (
             <MetricCard metrica={m} />
           ))}
         </main>

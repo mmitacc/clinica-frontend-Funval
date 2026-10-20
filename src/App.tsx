@@ -1,13 +1,12 @@
-// import { useState } from "react";
-// import { PaginaDashboard } from "./componets/metrica/PaginaDashboard";
+import { PaginaDashboard } from "./pages/PaginaDashboard";
 // import { PaginaPacientes } from "./pages/PaginaPacientes";
+// import FormularioCita from "./componets/consulta/FormularioCita";
 import "./App.css";
-import FormularioCita from "./componets/consulta/FormularioCita";
 
 function App() {
-  return <FormularioCita />;
+  // return <FormularioCita />;
   // return <PaginaPacientes />;
-  // return <PaginaDashboard />;
+  return <PaginaDashboard />;
 }
 
 export default App;
