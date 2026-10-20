@@ -19,7 +19,7 @@ export function MetricCard({ metrica }: MetricCardProps) {
       </h3>
       <p className="mb-2 text-body">{metrica.descripcion}</p>
       <h6 className={colorPorTendencia[metrica.tendencia]}>
-        {metrica.tendencia}
+        Tendencia: {metrica.tendencia}
       </h6>
       <h6 className="mb-2 text-body">{metrica.icono}</h6>
     </div>
