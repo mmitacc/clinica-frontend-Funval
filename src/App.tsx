@@ -18,7 +18,7 @@ function App() {
         {/* Rutas de tu aplicación */}
         <Route path="/dashboard" Component={PaginaDashboard} />
         <Route path="/pacientes" Component={PaginaPacientes} />
-        <Route path="/citas" Component={FormularioCita} />
+        <Route path="/citas/nueva" Component={FormularioCita} />
         <Route
           path="/historial"
           element={<div>Página de Historial (Próximamente)</div>}

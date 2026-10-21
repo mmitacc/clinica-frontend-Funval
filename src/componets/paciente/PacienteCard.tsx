@@ -47,67 +47,73 @@ export function PacienteCard({
     <article className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg max-w-sm w-full">
       <div>
         {/* Header: Avatar, Nombre, ID y Selector de Estado */}
-        <header className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            {/* Dinámico: Cambia el degradado del Avatar según el género (masculino/femenino) */}
-            <div
-              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xl font-bold tracking-wide shadow-inner bg-gradient-to-br ${
-                masculino
-                  ? "from-blue-200 to-slate-50 text-blue-700"
-                  : "from-pink-200 to-slate-50 text-pink-700"
-              }`}
-              aria-hidden="true"
-            >
-              <BadgeEstado estado={estado} texto={iniciales} />
-            </div>
-            <div className="min-w-0">
-              <h3
-                title={`${nombres} ${apellidos}`}
-                className="truncate text-base font-semibold text-slate-900 group-hover:text-slate-700 transition-colors"
+        <header className="flex flex-col gap-3">
+          {/* PRIMERA LÍNEA: Avatar, Tipo de sangre y Selector de Estado */}
+          <div className="flex items-center justify-between w-full gap-2">
+            <div className="flex items-center gap-2">
+              {/* Avatar dinámico según género */}
+              <div
+                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xl font-bold tracking-wide shadow-inner bg-gradient-to-br ${
+                  masculino
+                    ? "from-blue-200 to-slate-50 text-blue-700"
+                    : "from-pink-200 to-slate-50 text-pink-700"
+                }`}
+                aria-hidden="true"
               >
-                {nombres} {apellidos}
-              </h3>
-              {/* Muestra de forma limpia el tipo de sangre debajo del nombre */}
-              <span className="inline-block text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md mt-0.5">
-                ({tiposangre || "N/A"})
+                <BadgeEstado estado={estado} texto={iniciales} />
+              </div>
+
+              {/* Distintivo de Factor / Tipo de sangre */}
+              <span className="inline-flex items-center justify-center text-[11px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-1 rounded-lg h-7">
+                {tiposangre || "N/A"}
               </span>
+            </div>
+
+            {/* Selector de Estado Interactivo */}
+            <div className="shrink-0 relative">
+              <select
+                value={estado}
+                onChange={(e) =>
+                  onCambiarEstado?.(id, e.target.value as Paciente["estado"])
+                }
+                className={`appearance-none cursor-pointer text-xs font-semibold pl-3 pr-7 py-1.5 rounded-full ring-1 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/45 ${
+                  estado === "ACTIVO"
+                    ? "bg-green-50 text-green-700 ring-green-600/20 hover:bg-green-100"
+                    : estado === "EN_ESPERA"
+                      ? "bg-amber-50 text-amber-700 ring-amber-600/20 hover:bg-amber-100"
+                      : "bg-slate-100 text-slate-700 ring-slate-600/20 hover:bg-slate-200"
+                }`}
+              >
+                <option value="ACTIVO">activo</option>
+                <option value="EN_ESPERA">en_espera</option>
+                <option value="INACTIVO">inactivo</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-slate-400">
+                <svg
+                  className="h-3 w-3"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
 
-          {/* Selector de Estado Interactivo */}
-          <div className="shrink-0 relative">
-            <select
-              value={estado}
-              onChange={(e) =>
-                onCambiarEstado?.(id, e.target.value as Paciente["estado"])
-              }
-              className={`appearance-none cursor-pointer text-xs font-semibold pl-3 pr-7 py-1.5 rounded-full ring-1 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/45 ${
-                estado === "ACTIVO"
-                  ? "bg-green-50 text-green-700 ring-green-600/20 hover:bg-green-100"
-                  : estado === "EN_ESPERA"
-                    ? "bg-amber-50 text-amber-700 ring-amber-600/20 hover:bg-amber-100"
-                    : "bg-slate-100 text-slate-700 ring-slate-600/20 hover:bg-slate-200"
-              }`}
+          {/* SEGUNDA LÍNEA: Nombre completo del Paciente */}
+          <div className="w-full min-w-0 pt-0.5">
+            <h3
+              title={`${nombres} ${apellidos}`}
+              className="truncate text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors"
             >
-              <option value="ACTIVO">activo</option>
-              <option value="EN_ESPERA">en_espera</option>
-              <option value="INACTIVO">inactivo</option>
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-slate-400">
-              <svg
-                className="h-3 w-3"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19.5 8.25l-7.5 7.5-7.5-7.5"
-                />
-              </svg>
-            </div>
+              {nombres} {apellidos}
+            </h3>
           </div>
         </header>
 
