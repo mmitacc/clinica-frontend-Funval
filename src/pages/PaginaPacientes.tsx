@@ -202,10 +202,9 @@ export default function PaginaPacientes() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-6 md:p-10">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Cabecera de la Sección */}
-        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
+    <div className="min-h-screen bg-slate-50/50 px-6 py-4 md:py-6">
+      <div className="max-w-7xl mx-auto space-y-5">
+        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-3">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-blue-500 rounded-2xl text-white shadow-md shadow-black-300 flex items-center justify-center">
               {/* Icono nativo de usuarios */}
@@ -276,10 +275,7 @@ export default function PaginaPacientes() {
             <span className="font-semibold text-slate-800">
               {pacientesFiltrados.length}
             </span>{" "}
-            Pacientes encontrados, del total de{" "}
-            <span className="font-semibold text-slate-800">
-              {pacientes.length}
-            </span>
+            Pacientes encontrados.
           </div>
         </div>
 

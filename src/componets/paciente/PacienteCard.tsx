@@ -7,6 +7,7 @@
 
 import type { Paciente } from "../../types/paciente";
 import { BadgeEstado } from "./BadgeEstado";
+import { Link } from "react-router";
 
 interface PacienteCardProps {
   paciente: Paciente;
@@ -68,7 +69,7 @@ export function PacienteCard({
               </h3>
               {/* Muestra de forma limpia el tipo de sangre debajo del nombre */}
               <span className="inline-block text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md mt-0.5">
-                Tipo de Sangre: {tiposangre || "N/A"}
+                ({tiposangre || "N/A"})
               </span>
             </div>
           </div>
@@ -206,13 +207,12 @@ export function PacienteCard({
 
         {/* Botones de acción completados */}
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => onVerDetalles?.(id)}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-2 text-xs font-semibold text-blue-700 transition-all hover:bg-blue-100 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-blue-600/50"
+          <Link
+            to={`/pacientes/${id}`}
+            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-2 text-xs font-semibold text-blue-700 transition-all hover:bg-blue-100 active:scale-[0.98]"
           >
             Ver ficha
-          </button>
+          </Link>
 
           <button
             type="button"

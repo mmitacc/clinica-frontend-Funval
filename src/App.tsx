@@ -5,6 +5,7 @@ import PaginaPacientes from "./pages/PaginaPacientes";
 import FormularioCita from "./pages/FormularioCita";
 import PaginaNotFound from "./pages/PaginaNotFound";
 import "./App.css";
+import { PaginaDetallePaciente } from "./pages/PaginaDetallePaciente";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           path="/historial"
           element={<div>Página de Historial (Próximamente)</div>}
         />
+        <Route path="/pacientes/:id" Component={PaginaDetallePaciente}/>
         {/* CAPTURA CUALQUIER RUTA QUE NO COINCIDA CON LAS DE ARRIBA */}
         <Route path="*" element={<PaginaNotFound />} />
       </Route>
