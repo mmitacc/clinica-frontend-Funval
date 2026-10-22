@@ -18,7 +18,7 @@ export interface Paciente {
   masculino: boolean;
   fechanacimiento: string;
   tiposangre: TipoSangre;
-  alergias: string;
+  alergias: string | null;
   estado: EstadoPaciente;
   registerdate?: string;
   especialidadAsignada?: string;
@@ -27,5 +27,7 @@ export interface Paciente {
 
 export type NuevoPacienteForm = Omit<
   Paciente,
-  "id" | "registerdate" | "especialidadAsignada"
+  "id" | "registerdate" | "especialidadAsignada" | "ultimaCita"
 >;
+
+export type UpdatePacienteForm = Partial<Paciente>;
