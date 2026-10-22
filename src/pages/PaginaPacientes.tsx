@@ -1,24 +1,28 @@
 import { useEffect, useState } from "react";
 import { BuscadorPacientes } from "../componets/paciente/BuscadorPacientes";
 import { PacienteCard } from "../componets/paciente/PacienteCard";
-import type {
-  EstadoPaciente,
-  NuevoPacienteForm,
-  Paciente,
-} from "../types/paciente";
+import type { EstadoPacienteFiltro } from "../stores/useFiltrosStore";
+import type { EstadoPaciente } from "../types/paciente";
 import { ModalNuevoPaciente } from "../componets/paciente/ModalNuevoPaciente";
-import { pacientesService } from "../services/pacientes";
 import { toast } from "sonner";
 import { extraerMensajeError } from "../lib/errorHandler";
+import { usePacientesStore } from "../stores/pacientesStore";
+import { useFiltrosStore } from "../stores/useFiltrosStore";
 
 export default function PaginaPacientes() {
   // - Variables de estado para Cargar data de pacientes
-  const [pacientes, setPacientes] = useState<Paciente[]>([]);
-  const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState(false);
+  const pacientes = usePacientesStore((s) => s.pacientes);
+  const cargando = usePacientesStore((s) => s.cargando);
+  const error = usePacientesStore((s) => s.error);
+  const cargarPacientes = usePacientesStore((s) => s.cargar);
   // - Variables de estado para los filtros combinados
-  const [busqueda, setBusqueda] = useState<string>("");
-  const [estado, setEstado] = useState<string>("todos");
+  const busqueda = useFiltrosStore((s) => s.queryPacientes);
+  const estadoPacienteFiltro = useFiltrosStore((s) => s.estadoPacienteFiltro);
+  const setEstadoPaciente = useFiltrosStore((s) => s.setEstadoPaciente);
+  const setBusqueda = useFiltrosStore((s) => s.setQueryPacientes);
+  const crearPaciente = usePacientesStore((s) => s.crear);
+  const actualizarPaciente = usePacientesStore((s) => s.actualizar);
+  const eliminarPaciente = usePacientesStore((s) => s.eliminar);
   // - Variables de estado para crea un nuevo y update paciente
   const [modalAbierto, setModalAbierto] = useState<boolean>(false);
   const [esEdicion, setEsEdicion] = useState<boolean>(false);
@@ -38,23 +42,12 @@ export default function PaginaPacientes() {
     especialidadAsignada: "General",
   });
 
-  // Cargar data utilizando el servicio centralizado
-  const cargarPacientes = async () => {
-    setCargando(true);
-    setError(false);
-    try {
-      const data = await pacientesService.getAll();
-      setPacientes(data); // El servicio ya te entrega el array de pacientes mapeado y limpio
-    } catch (err) {
-      setError(true);
-    } finally {
-      setCargando(false);
-    }
-  };
-
+  // Cargar data pacientes
+  //  AHORA (Controlando que el parámetro enviado sea estrictamente un string)
   useEffect(() => {
-    cargarPacientes();
-  }, []);
+    const queryLimpio = busqueda.trim() !== "" ? busqueda.trim() : undefined;
+    cargarPacientes(queryLimpio);
+  }, [busqueda, cargarPacientes]);
 
   const reintentarCargarPacientes = () => {
     cargarPacientes();
@@ -80,7 +73,7 @@ export default function PaginaPacientes() {
           !
         </div>
         <p className="text-base font-semibold text-blue-900 mb-4">
-          No se pudieron cargar los datos.
+          {extraerMensajeError(error)}
         </p>
         <button
           onClick={reintentarCargarPacientes}
@@ -99,18 +92,21 @@ export default function PaginaPacientes() {
       (p) =>
         (p.nombres.toLowerCase().includes(busqueda.toLowerCase().trim()) ||
           p.apellidos.toLowerCase().includes(busqueda.toLowerCase().trim())) &&
-        (estado === "todos" || p.estado === estado),
+        (estadoPacienteFiltro === "todos" || p.estado === estadoPacienteFiltro),
     )
     .sort((a, b) => a.nombres.localeCompare(b.nombres));
   // - Eventos de cambio de estado para los filtros
-  const handleEstadoChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
-    setEstado(e.target.value);
+  const handleEstadoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setEstadoPaciente(e.target.value as EstadoPacienteFiltro);
+  };
 
   // Agregar un nuevo paciente con una ventana emergente
-  const handleGuardarPaciente = (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleGuardarPaciente = async (
+    e: React.SubmitEvent<HTMLFormElement>,
+  ) => {
     e.preventDefault();
 
-    // 1. Tus Validaciones Robustas para el email (Se mantienen intactas)
+    // 1. Validaciones Robustas
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(pacienteData.email.trim())) {
       toast.info(
@@ -119,78 +115,50 @@ export default function PaginaPacientes() {
       return;
     }
 
-    // 2. Construir la estructura final (Mapeamos dinámicamente el estado si es edición)
-    const pacienteFinal: any = {
+    // 2. Construir la estructura base que es idéntica en ambos casos
+    const estructuraBase = {
       nombres: pacienteData.nombres.trim(),
       apellidos: pacienteData.apellidos.trim(),
       telefono: pacienteData.telefono.trim(),
       email: pacienteData.email.trim(),
       masculino: pacienteData.masculino,
-      // Conservamos tu formato de fecha de origen
       fechanacimiento: pacienteData.fechanacimiento
-        ? new Date(pacienteData.fechanacimiento).toISOString()
+        ? new Date(pacienteData.fechanacimiento).toISOString().split("T")[0]
         : "",
       tiposangre: pacienteData.tiposangre,
       alergias: pacienteData.alergias.trim() || "Ninguna",
-      // Si es edición, mandamos el estado seleccionado en el modal; si es nuevo, por defecto va "ACTIVO"
-      estado: esEdicion ? pacienteData.estado.toUpperCase() : "ACTIVO",
+      estado: pacienteData.estado ?? "ACTIVO",
     };
 
-    // 3. Envío asíncrono adaptado para Crear o Editar
-    const guardarOActualizar = async (datosFinales: any) => {
-      try {
-        if (esEdicion && idPacienteAEditar !== null) {
-          // --- CASO EDICIÓN ---
-          const pacienteActualizado = await pacientesService.update(
-            idPacienteAEditar,
-            datosFinales,
-          );
+    try {
+      if (esEdicion && idPacienteAEditar !== null) {
+        // --- CASO EDICIÓN ---
+        // Para actualizar, inyectamos la propiedad 'estado' requerida por la API
+        const payloadEdicion = {
+          ...estructuraBase,
+          estado: pacienteData.estado.toUpperCase(),
+        };
 
-          // Actualizamos localmente el paciente modificado en la lista
-          setPacientes((prev) =>
-            prev.map((p) =>
-              p.id === idPacienteAEditar ? pacienteActualizado : p,
-            ),
-          );
-          toast.success("¡Datos del paciente actualizados con éxito!");
-        } else {
-          // --- CASO CREACIÓN (Tu flujo original) ---
-          await pacientesService.create(datosFinales);
-          await cargarPacientes();
-          toast.success("¡Paciente registrado con éxito!");
-        }
-
-        // Al finalizar con éxito cualquiera de las dos acciones, cerramos y limpiamos
-        setModalAbierto(false);
-        setEsEdicion(false);
-        setIdPacienteAEditar(null);
-        setPacienteData({
-          nombres: "",
-          apellidos: "",
-          telefono: "",
-          email: "",
-          masculino: true,
-          fechanacimiento: "",
-          tiposangre: "" as any,
-          alergias: "",
-          estado: "ACTIVO", // Agregado para limpiar el campo de estado
-          especialidadAsignada: "General",
-        });
-      } catch (err) {
-        const errorReal = extraerMensajeError(err);
-        toast.error(errorReal);
+        await actualizarPaciente(idPacienteAEditar, payloadEdicion);
+        toast.success("¡Datos del paciente actualizados con éxito!");
+      } else {
+        // --- CASO CREACIÓN ---
+        // Mandamos ÚNICA Y ESTRICTAMENTE las propiedades que espera tu backend (sin 'estado' ni campos extras)
+        await crearPaciente(estructuraBase);
+        toast.success("¡Paciente registrado con éxito!");
       }
-    };
 
-    // Ejecutamos la sub-función pasándole el objeto unificado
-    guardarOActualizar(pacienteFinal);
+      // Código posterior común de UI
+      setModalAbierto(false);
+    } catch (err) {
+      toast.error("Ocurrió un error al procesar la solicitud en el servidor.");
+    }
   };
-
   // --------------------
 
   // Eliminar un Paciente
   const handleEliminar = (id: string | number, nombrePaciente?: string) => {
-    // 1. Desparamos un toast de tipo "aviso/info" que pide confirmación
+    // Disparamos un toast de tipo "aviso/info" que pide confirmación
     toast("¿Seguro que deseas eliminar este paciente?", {
       description: nombrePaciente
         ? `Se eliminará a: ${nombrePaciente}`
@@ -200,26 +168,24 @@ export default function PaginaPacientes() {
       action: {
         label: "Eliminar",
         onClick: async () => {
-          // 2. Si el usuario hace clic en "Eliminar", se ejecuta la lógica asíncrona
+          // Si el usuario hace clic en "Eliminar", se ejecuta la acción del store
           try {
-            await pacientesService.delete(id);
-
-            // Actualizamos el estado local en el frontend
-            setPacientes((prev) => prev.filter((p) => p.id !== id));
+            // El store ejecuta el DELETE en la API y filtra el array local automáticamente
+            await eliminarPaciente(id);
 
             // Notificación final de éxito
             toast.success("Paciente eliminado correctamente.");
           } catch (err) {
-            const mensajeError = extraerMensajeError(err);
+            // Aunque el store ya captura internamente el error en su variable global,
+            // mantenemos tu log y toast local por si quieres pintar la alerta de inmediato
             console.error("Error al eliminar:", err);
-            toast.error(`Error: ${mensajeError}`);
+            toast.error("Ocurrió un error al intentar eliminar el paciente.");
           }
         },
       },
       cancel: {
         label: "Cancelar",
         onClick: () => {
-          // Opcional: puedes disparar algo al cancelar o dejarlo vacío para que solo se cierre
           toast.dismiss();
         },
       },
@@ -228,14 +194,19 @@ export default function PaginaPacientes() {
   // --------------------
 
   // Editar el estado de un Paciente
-  const handleCambiarEstado = (
+  const handleCambiarEstado = async (
     id: string | number,
     nuevoEstado: EstadoPaciente,
   ) => {
-    setPacientes((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, estado: nuevoEstado } : p)),
-    );
+    try {
+      // El store ejecuta el PUT/PATCH y actualiza el array global internamente
+      await actualizarPaciente(id, { estado: nuevoEstado });
+      toast.success("¡Estado del paciente actualizado!");
+    } catch (err) {
+      toast.error("No se pudo cambiar el estado del paciente");
+    }
   };
+
   // --------------------
 
   // Mostrar o visualizar en el futuro la ficha del paciente
@@ -256,7 +227,7 @@ export default function PaginaPacientes() {
 
     // 2. Activamos la bandera de edición y guardamos el ID para usarlo luego en el PUT
     setEsEdicion(true);
-    setIdPacienteAEditar(id);
+    setIdPacienteAEditar(pacienteSeleccionado.id);
 
     // 3. Rellenamos el estado del formulario con los datos reales del paciente.
     // Nota: Si la fecha viene como ISO completo (ej: "1985-05-21T00:00:00.000Z"),
@@ -344,7 +315,7 @@ export default function PaginaPacientes() {
           <div className="relative max-w-md">
             <select
               className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              value={estado}
+              value={estadoPacienteFiltro}
               onChange={handleEstadoChange}
             >
               <option value="todos">Estado: Todos</option>
@@ -368,7 +339,7 @@ export default function PaginaPacientes() {
               <PacienteCard
                 key={paciente.id.toString()}
                 paciente={paciente}
-                onVerDetalles={handleVerDetalles}
+                // onVerDetalles={handleVerDetalles}
                 onEditar={handleEditar}
                 onEliminar={handleEliminar}
                 onCambiarEstado={handleCambiarEstado}
