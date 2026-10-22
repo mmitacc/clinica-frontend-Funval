@@ -14,7 +14,7 @@ interface PacienteCardProps {
   // Corregido: id acepta string | number para alinearse con la nueva interfaz
   onVerDetalles?: (id: string | number) => void;
   onEditar?: (id: string | number) => void;
-  onEliminar?: (id: string | number) => void;
+  onEliminar?: (id: string | number, nombrePaciente?: string) => void;
   onCambiarEstado?: (
     id: string | number,
     nuevoEstado: Paciente["estado"],
@@ -24,7 +24,6 @@ interface PacienteCardProps {
 export function PacienteCard({
   paciente,
   onEditar,
-  onVerDetalles,
   onEliminar,
   onCambiarEstado,
 }: PacienteCardProps) {
@@ -243,7 +242,7 @@ export function PacienteCard({
 
           <button
             type="button"
-            onClick={() => onEliminar?.(id)}
+            onClick={() => onEliminar?.(id, `${nombres} ${apellidos}`)}
             className="inline-flex items-center justify-center rounded-lg border border-red-100 bg-red-50 p-2 text-red-600 transition-all hover:bg-red-100 active:scale-[0.98]"
             title="Eliminar paciente"
           >

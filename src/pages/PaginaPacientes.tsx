@@ -7,7 +7,9 @@ import type {
   Paciente,
 } from "../types/paciente";
 import { ModalNuevoPaciente } from "../componets/paciente/ModalNuevoPaciente";
-import { api } from "../lib/axios";
+import { pacientesService } from "../services/pacientes";
+import { toast } from "sonner";
+import { extraerMensajeError } from "../lib/errorHandler";
 
 export default function PaginaPacientes() {
   // - Variables de estado para Cargar data de pacientes
@@ -17,9 +19,13 @@ export default function PaginaPacientes() {
   // - Variables de estado para los filtros combinados
   const [busqueda, setBusqueda] = useState<string>("");
   const [estado, setEstado] = useState<string>("todos");
-  // - Variables de estado para crea un nuevo paciente
+  // - Variables de estado para crea un nuevo y update paciente
   const [modalAbierto, setModalAbierto] = useState<boolean>(false);
-  const [nuevoPaciente, setNuevoPaciente] = useState({
+  const [esEdicion, setEsEdicion] = useState<boolean>(false);
+  const [idPacienteAEditar, setIdPacienteAEditar] = useState<
+    string | number | null
+  >(null);
+  const [pacienteData, setPacienteData] = useState({
     nombres: "",
     apellidos: "",
     telefono: "",
@@ -28,25 +34,29 @@ export default function PaginaPacientes() {
     fechanacimiento: "",
     tiposangre: "" as any,
     alergias: "",
+    estado: "ACTIVO" as any,
     especialidadAsignada: "General",
   });
 
-  // Cargar data de pacientes con axios
-  const cargarPacientes = () => {
+  // Cargar data utilizando el servicio centralizado
+  const cargarPacientes = async () => {
     setCargando(true);
     setError(false);
-    api
-      .get("/pacientes")
-      .then((res) => setPacientes(res.data.data))
-      .catch(() => setError(true))
-      .finally(() => setCargando(false));
+    try {
+      const data = await pacientesService.getAll();
+      setPacientes(data); // El servicio ya te entrega el array de pacientes mapeado y limpio
+    } catch (err) {
+      setError(true);
+    } finally {
+      setCargando(false);
+    }
   };
 
-  useEffect(cargarPacientes, []);
+  useEffect(() => {
+    cargarPacientes();
+  }, []);
 
   const reintentarCargarPacientes = () => {
-    setCargando(true);
-    setError(false);
     cargarPacientes();
   };
 
@@ -100,86 +110,122 @@ export default function PaginaPacientes() {
   const handleGuardarPaciente = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Validaciones Robustas existentes
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\$/;
-    if (!emailRegex.test(nuevoPaciente.email.trim())) {
-      alert(
+    // 1. Tus Validaciones Robustas para el email (Se mantienen intactas)
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(pacienteData.email.trim())) {
+      toast.info(
         "Por favor, introduce un correo electrónico válido con su extensión (Ej: .com, .es).",
       );
       return;
     }
 
-    const telefonoRegex = /^\+?[0-9\s]{9,15}\$/;
-    if (!telefonoRegex.test(nuevoPaciente.telefono.trim())) {
-      alert(
-        "El formato del teléfono no es válido. Debe tener entre 9 y 15 dígitos.",
-      );
-      return;
-    }
-
-    // Validación adicional para Tipo de Sangre (asegurar que no vaya vacío)
-    if (!nuevoPaciente.tiposangre) {
-      alert("Por favor, selecciona un tipo de sangre válido.");
-      return;
-    }
-
-    // Construir la estructura final del objeto Paciente
-    const pacienteFinal: NuevoPacienteForm = {
-      // id: nuevoId,
-      nombres: nuevoPaciente.nombres.trim(),
-      apellidos: nuevoPaciente.apellidos.trim(),
-      telefono: nuevoPaciente.telefono.trim(),
-      email: nuevoPaciente.email.trim(),
-      masculino: nuevoPaciente.masculino,
-      // Convertir la fecha a formato ISO string completo para coincidir con tu JSON de origen
-      fechanacimiento: nuevoPaciente.fechanacimiento
-        ? new Date(nuevoPaciente.fechanacimiento).toISOString()
+    // 2. Construir la estructura final (Mapeamos dinámicamente el estado si es edición)
+    const pacienteFinal: any = {
+      nombres: pacienteData.nombres.trim(),
+      apellidos: pacienteData.apellidos.trim(),
+      telefono: pacienteData.telefono.trim(),
+      email: pacienteData.email.trim(),
+      masculino: pacienteData.masculino,
+      // Conservamos tu formato de fecha de origen
+      fechanacimiento: pacienteData.fechanacimiento
+        ? new Date(pacienteData.fechanacimiento).toISOString()
         : "",
-      tiposangre: nuevoPaciente.tiposangre,
-      alergias: nuevoPaciente.alergias.trim() || "Ninguna",
-      ultimaCita: new Date().toISOString().split("T")[0], // Formato YYYY-MM-DD
-      estado: "ACTIVO",
+      tiposangre: pacienteData.tiposangre,
+      alergias: pacienteData.alergias.trim() || "Ninguna",
+      // Si es edición, mandamos el estado seleccionado en el modal; si es nuevo, por defecto va "ACTIVO"
+      estado: esEdicion ? pacienteData.estado.toUpperCase() : "ACTIVO",
     };
 
-    // Envío asíncrono con Axios al Servidor
-    api
-      .post("/pacientes", pacienteFinal)
-      .then(() => {
-        // Si el servidor guardó con éxito, recargamos la lista actualizada
-        cargarPacientes();
+    // 3. Envío asíncrono adaptado para Crear o Editar
+    const guardarOActualizar = async (datosFinales: any) => {
+      try {
+        if (esEdicion && idPacienteAEditar !== null) {
+          // --- CASO EDICIÓN ---
+          const pacienteActualizado = await pacientesService.update(
+            idPacienteAEditar,
+            datosFinales,
+          );
 
-        // Cerrar ventana modal
+          // Actualizamos localmente el paciente modificado en la lista
+          setPacientes((prev) =>
+            prev.map((p) =>
+              p.id === idPacienteAEditar ? pacienteActualizado : p,
+            ),
+          );
+          toast.success("¡Datos del paciente actualizados con éxito!");
+        } else {
+          // --- CASO CREACIÓN (Tu flujo original) ---
+          await pacientesService.create(datosFinales);
+          await cargarPacientes();
+          toast.success("¡Paciente registrado con éxito!");
+        }
+
+        // Al finalizar con éxito cualquiera de las dos acciones, cerramos y limpiamos
         setModalAbierto(false);
-
-        // Resetear el estado del formulario del padre a valores por defecto limpios
-        setNuevoPaciente({
+        setEsEdicion(false);
+        setIdPacienteAEditar(null);
+        setPacienteData({
           nombres: "",
           apellidos: "",
           telefono: "",
           email: "",
           masculino: true,
           fechanacimiento: "",
-          tiposangre: "",
+          tiposangre: "" as any,
           alergias: "",
+          estado: "ACTIVO", // Agregado para limpiar el campo de estado
           especialidadAsignada: "General",
         });
-      })
-      .catch((err) => {
-        console.error("Error al registrar paciente en el servidor:", err);
-        alert(
-          "No se pudo conectar con el servidor para registrar el paciente. Inténtalo de nuevo.",
-        );
-      });
+      } catch (err) {
+        const errorReal = extraerMensajeError(err);
+        toast.error(errorReal);
+      }
+    };
+
+    // Ejecutamos la sub-función pasándole el objeto unificado
+    guardarOActualizar(pacienteFinal);
   };
 
   // --------------------
 
   // Eliminar un Paciente
-  const handleEliminar = (id: string | number) => {
-    if (window.confirm("¿Seguro que deseas eliminar este paciente?")) {
-      setPacientes((prev) => prev.filter((p) => p.id !== id));
-    }
+  const handleEliminar = (id: string | number, nombrePaciente?: string) => {
+    // 1. Desparamos un toast de tipo "aviso/info" que pide confirmación
+    toast("¿Seguro que deseas eliminar este paciente?", {
+      description: nombrePaciente
+        ? `Se eliminará a: ${nombrePaciente}`
+        : undefined,
+      duration: Infinity, // Hace que el toast no se cierre solo hasta que elijan una opción
+      position: "top-center", // Lo centramos arriba para que tenga buena visibilidad
+      action: {
+        label: "Eliminar",
+        onClick: async () => {
+          // 2. Si el usuario hace clic en "Eliminar", se ejecuta la lógica asíncrona
+          try {
+            await pacientesService.delete(id);
+
+            // Actualizamos el estado local en el frontend
+            setPacientes((prev) => prev.filter((p) => p.id !== id));
+
+            // Notificación final de éxito
+            toast.success("Paciente eliminado correctamente.");
+          } catch (err) {
+            const mensajeError = extraerMensajeError(err);
+            console.error("Error al eliminar:", err);
+            toast.error(`Error: ${mensajeError}`);
+          }
+        },
+      },
+      cancel: {
+        label: "Cancelar",
+        onClick: () => {
+          // Opcional: puedes disparar algo al cancelar o dejarlo vacío para que solo se cierre
+          toast.dismiss();
+        },
+      },
+    });
   };
+  // --------------------
 
   // Editar el estado de un Paciente
   const handleCambiarEstado = (
@@ -190,16 +236,52 @@ export default function PaginaPacientes() {
       prev.map((p) => (p.id === id ? { ...p, estado: nuevoEstado } : p)),
     );
   };
+  // --------------------
 
   // Mostrar o visualizar en el futuro la ficha del paciente
   const handleVerDetalles = (id: string | number) => {
     console.log("Ver ficha del paciente con ID:", id);
   };
+  // --------------------
 
   // Editar un paciente seleccionado
   const handleEditar = (id: string | number) => {
-    console.log("Editar paciente con ID:", id);
+    // 1. Buscamos al paciente seleccionado dentro de la lista actual del estado
+    const pacienteSeleccionado = pacientes.find((p) => p.id === id);
+
+    if (!pacienteSeleccionado) {
+      toast.error("No se encontraron los datos del paciente seleccionado.");
+      return;
+    }
+
+    // 2. Activamos la bandera de edición y guardamos el ID para usarlo luego en el PUT
+    setEsEdicion(true);
+    setIdPacienteAEditar(id);
+
+    // 3. Rellenamos el estado del formulario con los datos reales del paciente.
+    // Nota: Si la fecha viene como ISO completo (ej: "1985-05-21T00:00:00.000Z"),
+    // usamos .split('T')[0] para extraer solo "1985-05-21", que es lo que el <input type="date" /> necesita para renderizarse.
+    setPacienteData({
+      nombres: pacienteSeleccionado.nombres,
+      apellidos: pacienteSeleccionado.apellidos,
+      telefono: pacienteSeleccionado.telefono,
+      email: pacienteSeleccionado.email,
+      masculino: pacienteSeleccionado.masculino,
+      fechanacimiento: pacienteSeleccionado.fechanacimiento
+        ? pacienteSeleccionado.fechanacimiento.split("T")[0]
+        : "",
+      tiposangre: pacienteSeleccionado.tiposangre,
+      alergias: pacienteSeleccionado.alergias || "",
+      estado: pacienteSeleccionado.estado,
+      especialidadAsignada:
+        pacienteSeleccionado.especialidadAsignada || "General",
+    });
+
+    // 4. Abrimos la ventana modal (que ahora mostrará el título "Modificar Datos del Paciente")
+    setModalAbierto(true);
   };
+
+  // --------------------
 
   return (
     <div className="min-h-screen bg-slate-50/50 px-6 py-4 md:py-6">
@@ -266,9 +348,9 @@ export default function PaginaPacientes() {
               onChange={handleEstadoChange}
             >
               <option value="todos">Estado: Todos</option>
-              <option value="ACTIVO">Estado: ACTIVO</option>
-              <option value="INACTIVO">Estado: INACTIVO</option>
-              <option value="EN_ESPERA">Estado: EN_ESPERA</option>
+              <option value="ACTIVO">Estado: Actico</option>
+              <option value="INACTIVO">Estado: Inactivo</option>
+              <option value="EN_ESPERA">Estado: Espera</option>
             </select>
           </div>
           <div className="text-xs font-medium text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 self-start sm:self-auto">
@@ -284,7 +366,7 @@ export default function PaginaPacientes() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {pacientesFiltrados.map((paciente) => (
               <PacienteCard
-                key={paciente.id}
+                key={paciente.id.toString()}
                 paciente={paciente}
                 onVerDetalles={handleVerDetalles}
                 onEditar={handleEditar}
@@ -325,8 +407,9 @@ export default function PaginaPacientes() {
           isOpen={modalAbierto}
           onClose={() => setModalAbierto(false)}
           onSubmit={handleGuardarPaciente}
-          nuevoPaciente={nuevoPaciente}
-          setNuevoPaciente={setNuevoPaciente}
+          pacienteData={pacienteData}
+          setPacienteData={setPacienteData}
+          esEdicion={esEdicion}
         />
         {/* ********************************************************************* */}
       </div>

@@ -11,6 +11,7 @@ interface FormNuevoPaciente {
   fechanacimiento: string;
   tiposangre: TipoSangre | "";
   alergias: string;
+  estado: EstadoPaciente;
   especialidadAsignada: string;
 }
 
@@ -18,16 +19,18 @@ interface ModalNuevoPacienteProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (e: React.SubmitEvent<HTMLFormElement>) => void;
-  nuevoPaciente: FormNuevoPaciente;
-  setNuevoPaciente: React.Dispatch<React.SetStateAction<FormNuevoPaciente>>;
+  pacienteData: FormNuevoPaciente;
+  setPacienteData: React.Dispatch<React.SetStateAction<FormNuevoPaciente>>;
+  esEdicion?: boolean;
 }
 
 export function ModalNuevoPaciente({
   isOpen,
   onClose,
   onSubmit,
-  nuevoPaciente,
-  setNuevoPaciente,
+  pacienteData,
+  setPacienteData,
+  esEdicion,
 }: ModalNuevoPacienteProps) {
   if (!isOpen) return null;
 
@@ -38,7 +41,7 @@ export function ModalNuevoPaciente({
         {/* Cabecera */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
           <h2 className="text-lg font-bold text-slate-900">
-            Registrar Nuevo Paciente
+            {esEdicion ? "Modificar Paciente" : "Registrar Nuevo Paciente"}
           </h2>
           <button
             type="button"
@@ -64,10 +67,10 @@ export function ModalNuevoPaciente({
                 required
                 type="text"
                 className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                value={nuevoPaciente.nombres}
+                value={pacienteData.nombres}
                 onChange={(e) =>
-                  setNuevoPaciente({
-                    ...nuevoPaciente,
+                  setPacienteData({
+                    ...pacienteData,
                     nombres: e.target.value,
                   })
                 }
@@ -82,10 +85,10 @@ export function ModalNuevoPaciente({
                 required
                 type="text"
                 className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                value={nuevoPaciente.apellidos}
+                value={pacienteData.apellidos}
                 onChange={(e) =>
-                  setNuevoPaciente({
-                    ...nuevoPaciente,
+                  setPacienteData({
+                    ...pacienteData,
                     apellidos: e.target.value,
                   })
                 }
@@ -104,9 +107,9 @@ export function ModalNuevoPaciente({
                 required
                 type="email"
                 className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                value={nuevoPaciente.email}
+                value={pacienteData.email}
                 onChange={(e) =>
-                  setNuevoPaciente({ ...nuevoPaciente, email: e.target.value })
+                  setPacienteData({ ...pacienteData, email: e.target.value })
                 }
                 placeholder="juan.perez@email.com"
               />
@@ -120,10 +123,10 @@ export function ModalNuevoPaciente({
                 type="text"
                 pattern="^\+?[0-9\s]{9,15}$"
                 className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                value={nuevoPaciente.telefono}
+                value={pacienteData.telefono}
                 onChange={(e) =>
-                  setNuevoPaciente({
-                    ...nuevoPaciente,
+                  setPacienteData({
+                    ...pacienteData,
                     telefono: e.target.value,
                   })
                 }
@@ -142,10 +145,10 @@ export function ModalNuevoPaciente({
                 required
                 type="date"
                 className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                value={nuevoPaciente.fechanacimiento}
+                value={pacienteData.fechanacimiento}
                 onChange={(e) =>
-                  setNuevoPaciente({
-                    ...nuevoPaciente,
+                  setPacienteData({
+                    ...pacienteData,
                     fechanacimiento: e.target.value,
                   })
                 }
@@ -157,10 +160,10 @@ export function ModalNuevoPaciente({
               </label>
               <select
                 className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                value={nuevoPaciente.masculino ? "true" : "false"}
+                value={pacienteData.masculino ? "true" : "false"}
                 onChange={(e) =>
-                  setNuevoPaciente({
-                    ...nuevoPaciente,
+                  setPacienteData({
+                    ...pacienteData,
                     masculino: e.target.value === "true",
                   })
                 }
@@ -180,10 +183,10 @@ export function ModalNuevoPaciente({
               <select
                 required
                 className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                value={nuevoPaciente.tiposangre}
+                value={pacienteData.tiposangre}
                 onChange={(e) =>
-                  setNuevoPaciente({
-                    ...nuevoPaciente,
+                  setPacienteData({
+                    ...pacienteData,
                     tiposangre: e.target.value as TipoSangre,
                   })
                 }
@@ -207,10 +210,10 @@ export function ModalNuevoPaciente({
               </label>
               <select
                 className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                value={nuevoPaciente.especialidadAsignada}
+                value={pacienteData.especialidadAsignada}
                 onChange={(e) =>
-                  setNuevoPaciente({
-                    ...nuevoPaciente,
+                  setPacienteData({
+                    ...pacienteData,
                     especialidadAsignada: e.target.value,
                   })
                 }
@@ -231,9 +234,9 @@ export function ModalNuevoPaciente({
             <input
               type="text"
               className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              value={nuevoPaciente.alergias}
+              value={pacienteData.alergias}
               onChange={(e) =>
-                setNuevoPaciente({ ...nuevoPaciente, alergias: e.target.value })
+                setPacienteData({ ...pacienteData, alergias: e.target.value })
               }
               placeholder="Ej. Penicilina, Ninguna"
             />
@@ -252,7 +255,7 @@ export function ModalNuevoPaciente({
               type="submit"
               className="px-4 py-2 text-sm font-semibold text-white bg-blue-500 hover:bg-blue-600 rounded-xl shadow-sm transition-colors"
             >
-              Guardar Paciente
+              {esEdicion ? "Guardar Cambios" : "Registrar Paciente"}
             </button>
           </div>
         </form>

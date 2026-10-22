@@ -1,7 +1,7 @@
 import type { EstadoPaciente } from "../../types/paciente";
 
 interface BadgeEstadoProps {
-  estado: EstadoPaciente;
+  estado: EstadoPaciente | string;
   texto: string;
 }
 
