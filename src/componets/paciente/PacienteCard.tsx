@@ -12,7 +12,7 @@ import { Link } from "react-router";
 interface PacienteCardProps {
   paciente: Paciente;
   // Corregido: id acepta string | number para alinearse con la nueva interfaz
-  onVerDetalles?: (id: string | number) => void;
+  // onVerDetalles?: (id: string | number) => void;
   onEditar?: (id: string | number) => void;
   onEliminar?: (id: string | number, nombrePaciente?: string) => void;
   onCambiarEstado?: (

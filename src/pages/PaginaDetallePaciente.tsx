@@ -14,23 +14,23 @@ export function PaginaDetallePaciente() {
 
   useEffect(() => {
     if (!id) return;
-
-    setCargando(true);
-    setError(false);
-
-    api
-      .get(`/pacientes/${id}`)
-      .then((res) => {
-        setPaciente(res.data.data);
-      })
-      .catch((err) => {
+    const obtenerDetallePaciente = async () => {
+      setCargando(true);
+      setError(false);
+      try {
+        const res = await api.get(`/pacientes/${id}`);
+        setPaciente(res.data.data || res.data);
+      } catch (err) {
         console.error("Error al cargar detalle del paciente:", err);
         setError(true);
-      })
-      .finally(() => setCargando(false));
+      } finally {
+        setCargando(false);
+      }
+    };
+    obtenerDetallePaciente();
   }, [id]);
-  console.log('PACIENTE: ', paciente);
-  
+
+  console.log("PACIENTE: ", paciente);
 
   if (cargando) {
     return (
