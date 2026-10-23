@@ -6,6 +6,7 @@ import FormularioCita from "./pages/FormularioCita";
 import PaginaNotFound from "./pages/PaginaNotFound";
 import "./App.css";
 import { PaginaDetallePaciente } from "./pages/PaginaDetallePaciente";
+import { PaginaConsultas } from "./pages/PaginaConsultas";
 import { Toaster } from "sonner";
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
           <Route path="/dashboard" Component={PaginaDashboard} />
           <Route path="/pacientes" Component={PaginaPacientes} />
           <Route path="/citas/nueva" Component={FormularioCita} />
+          <Route path="/consultas" Component={PaginaConsultas} />
           <Route
             path="/historial"
             element={<div>Página de Historial (Próximamente)</div>}
