@@ -4,32 +4,7 @@ import type {
   NuevoPacienteForm,
   UpdatePacienteForm,
   EstadoPaciente,
-  TipoSangre,
 } from "../types/paciente";
-
-// Diccionario para transformar la sangre al formato string que espera tu API
-const MAPEO_SANGRE_A_API: Record<TipoSangre, string> = {
-  "O+": "O_POS",
-  "O-": "O_NEG",
-  "A+": "A_POS",
-  "A-": "A_NEG",
-  "B+": "B_POS",
-  "B-": "B_NEG",
-  "AB+": "AB_POS",
-  "AB-": "AB_NEG",
-};
-
-// Diccionario inverso para cuando la API te devuelva la data al Frontend
-const MAPEO_SANGRE_A_FRONTEND: Record<string, TipoSangre> = {
-  O_POS: "O+",
-  O_NEG: "O-",
-  A_POS: "A+",
-  A_NEG: "A-",
-  B_POS: "B+",
-  B_NEG: "B-",
-  AB_POS: "AB+",
-  AB_NEG: "AB-",
-};
 
 interface ApiResponse<T> {
   data: T;
@@ -44,8 +19,7 @@ const convertirPaciente = (paciente: any): Paciente => ({
   email: paciente.email,
   masculino: paciente.masculino,
   fechanacimiento: paciente.fechanacimiento,
-  // Convierte "B_NEG" de vuelta a "B-" para que TypeScript y tus selects no se rompan
-  tiposangre: MAPEO_SANGRE_A_FRONTEND[paciente.tiposangre] || "O+",
+  tiposangre: paciente.tiposangre,
   alergias: paciente.alergias ?? "Ninguna",
   estado: (paciente.estado?.toLowerCase() as EstadoPaciente) || "ACTIVO",
   registerdate: paciente.registerdate,
@@ -64,17 +38,12 @@ const convertirDatos = (datos: UpdatePacienteForm, esCreacion = false) => {
   if (datos.masculino !== undefined) payload.masculino = datos.masculino;
   if (datos.fechanacimiento !== undefined)
     payload.fechanacimiento = datos.fechanacimiento;
-
-  // Convertimos "B-" a "B_NEG" usando el diccionario seguro
   if (datos.tiposangre !== undefined) {
-    payload.tiposangre =
-      MAPEO_SANGRE_A_API[datos.tiposangre] || datos.tiposangre;
+    payload.tiposangre = datos.tiposangre;
   }
 
   if (datos.alergias !== undefined)
     payload.alergias = datos.alergias || "Ninguna";
-
-  // SOLO añadimos el estado si NO es una operación de creación de usuario
   if (!esCreacion && datos.estado !== undefined) {
     payload.estado = datos.estado;
   }

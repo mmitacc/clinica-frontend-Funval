@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { BuscadorPacientes } from "../componets/paciente/BuscadorPacientes";
 import { PacienteCard } from "../componets/paciente/PacienteCard";
 import type { EstadoPacienteFiltro } from "../stores/useFiltrosStore";
@@ -8,28 +8,13 @@ import { toast } from "sonner";
 import { extraerMensajeError } from "../lib/errorHandler";
 import { usePacientesStore } from "../stores/pacientesStore";
 import { useFiltrosStore } from "../stores/useFiltrosStore";
+import { useApi } from "../hooks/useApi"; // <-- Importamos tu hook genérico
+import useDebounce from "../hooks/useDebounce";
+import type { Paciente } from "../types/paciente";
 
 export default function PaginaPacientes() {
-  // - Variables de estado para Cargar data de pacientes
-  const pacientes = usePacientesStore((s) => s.pacientes);
-  const cargando = usePacientesStore((s) => s.cargando);
-  const error = usePacientesStore((s) => s.error);
-  const cargarPacientes = usePacientesStore((s) => s.cargar);
-  // - Variables de estado para los filtros combinados
-  const busqueda = useFiltrosStore((s) => s.queryPacientes);
-  const estadoPacienteFiltro = useFiltrosStore((s) => s.estadoPacienteFiltro);
-  const setEstadoPaciente = useFiltrosStore((s) => s.setEstadoPaciente);
-  const setBusqueda = useFiltrosStore((s) => s.setQueryPacientes);
-  const crearPaciente = usePacientesStore((s) => s.crear);
-  const actualizarPaciente = usePacientesStore((s) => s.actualizar);
-  const eliminarPaciente = usePacientesStore((s) => s.eliminar);
-  // - Variables de estado para crea un nuevo y update paciente
-  const [modalAbierto, setModalAbierto] = useState<boolean>(false);
-  const [esEdicion, setEsEdicion] = useState<boolean>(false);
-  const [idPacienteAEditar, setIdPacienteAEditar] = useState<
-    string | number | null
-  >(null);
-  const [pacienteData, setPacienteData] = useState({
+  // Datos de paciente inicial
+  const dataInitPaciente = {
     nombres: "",
     apellidos: "",
     telefono: "",
@@ -40,35 +25,75 @@ export default function PaginaPacientes() {
     alergias: "",
     estado: "ACTIVO" as any,
     especialidadAsignada: "General",
-  });
-
-  // Cargar data pacientes
-  //  AHORA (Controlando que el parámetro enviado sea estrictamente un string)
-  useEffect(() => {
-    const queryLimpio = busqueda.trim() !== "" ? busqueda.trim() : undefined;
-    cargarPacientes(queryLimpio);
-  }, [busqueda, cargarPacientes]);
-
-  const reintentarCargarPacientes = () => {
-    cargarPacientes();
   };
 
-  if (cargando) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[200px] p-6 space-y-4">
-        {/* Spinner animado en azul */}
-        <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-        <p className="text-sm font-medium text-blue-700 animate-pulse">
-          La página está cargando...
-        </p>
-      </div>
-    );
-  }
+  // - Variables de estado para Cargar data de pacientes mediante useApi
+  // Notación: cambiamos 'busqueda' por tu estado local que controla el input actual
+  const busqueda = useFiltrosStore((s) => s.queryPacientes);
+  const estadoPacienteFiltro = useFiltrosStore((s) => s.estadoPacienteFiltro);
+  const setEstadoPaciente = useFiltrosStore((s) => s.setEstadoPaciente);
+  const setBusqueda = useFiltrosStore((s) => s.setQueryPacientes);
 
+  // Acciones mutate de Zustand
+  const crearPaciente = usePacientesStore((s) => s.crear);
+  const actualizarPaciente = usePacientesStore((s) => s.actualizar);
+  const eliminarPaciente = usePacientesStore((s) => s.eliminar);
+
+  // - Variables de estado para crear un nuevo y update paciente
+  const [modalAbierto, setModalAbierto] = useState<boolean>(false);
+  const [esEdicion, setEsEdicion] = useState<boolean>(false);
+  const [idPacienteAEditar, setIdPacienteAEditar] = useState<
+    string | number | null
+  >(null);
+  const [pacienteData, setPacienteData] = useState(dataInitPaciente);
+
+  // Debounce para filtros combinados de busquedas
+  const busquedaDebounce = useDebounce(busqueda, 350);
+
+  // 1. Memorizamos los parámetros HTTP para que useApi no cree bucles infinitos
+  const apiParams = useMemo(() => {
+    return {
+      query:
+        busquedaDebounce.trim() !== "" ? busquedaDebounce.trim() : undefined,
+    };
+  }, [busquedaDebounce]);
+
+  // 2. INTEGRACIÓN DE USEAPI: Consume el endpoint tipando estrictamente con <Paciente[]>
+  // Devuelve la data limpia, el estado de carga y error, junto a la función 'recargar' para los mutates
+  const {
+    data: pacientes,
+    cargando,
+    error,
+    recargar,
+  } = useApi<Paciente[]>("/pacientes", apiParams);
+
+  // Filtros para pacientes en Frontend basados en la respuesta de useApi
+  const pacientesFiltrados = useMemo(() => {
+    if (!pacientes) return [];
+    return pacientes
+      .filter(
+        (p) =>
+          (p.nombres
+            .toLowerCase()
+            .includes(busquedaDebounce.toLowerCase().trim()) ||
+            p.apellidos
+              .toLowerCase()
+              .includes(busquedaDebounce.toLowerCase().trim())) &&
+          (estadoPacienteFiltro === "todos" ||
+            p.estado === estadoPacienteFiltro),
+      )
+      .sort((a, b) => a.nombres.localeCompare(b.nombres));
+  }, [pacientes, busquedaDebounce, estadoPacienteFiltro]);
+
+  // - Eventos de cambio de estado para los filtros
+  const handleEstadoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setEstadoPaciente(e.target.value as EstadoPacienteFiltro);
+  };
+
+  // Renderizado condicional si ocurre un error en useApi
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[200px] p-6 text-center bg-blue-50 border border-blue-100 rounded-xl max-w-md mx-auto my-4">
-        {/* Icono de advertencia simple usando bordes */}
         <div className="flex items-center justify-center w-12 h-12 mb-3 bg-blue-100 rounded-full text-blue-600 font-bold text-xl">
           !
         </div>
@@ -76,7 +101,7 @@ export default function PaginaPacientes() {
           {extraerMensajeError(error)}
         </p>
         <button
-          onClick={reintentarCargarPacientes}
+          onClick={recargar} // <-- Usamos recargar de useApi
           className="px-5 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium text-sm rounded-lg shadow-sm shadow-blue-200 transition-colors duration-200"
         >
           Reintentar
@@ -85,28 +110,12 @@ export default function PaginaPacientes() {
     );
   }
 
-  // Filtros para pacientes
-  // - Lógica para los filtros combinados
-  const pacientesFiltrados = pacientes
-    .filter(
-      (p) =>
-        (p.nombres.toLowerCase().includes(busqueda.toLowerCase().trim()) ||
-          p.apellidos.toLowerCase().includes(busqueda.toLowerCase().trim())) &&
-        (estadoPacienteFiltro === "todos" || p.estado === estadoPacienteFiltro),
-    )
-    .sort((a, b) => a.nombres.localeCompare(b.nombres));
-  // - Eventos de cambio de estado para los filtros
-  const handleEstadoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setEstadoPaciente(e.target.value as EstadoPacienteFiltro);
-  };
-
-  // Agregar un nuevo paciente con una ventana emergente
+  // Agregar / Modificar Paciente
   const handleGuardarPaciente = async (
     e: React.SubmitEvent<HTMLFormElement>,
   ) => {
     e.preventDefault();
 
-    // 1. Validaciones Robustas
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(pacienteData.email.trim())) {
       toast.info(
@@ -115,7 +124,6 @@ export default function PaginaPacientes() {
       return;
     }
 
-    // 2. Construir la estructura base que es idéntica en ambos casos
     const estructuraBase = {
       nombres: pacienteData.nombres.trim(),
       apellidos: pacienteData.apellidos.trim(),
@@ -132,52 +140,41 @@ export default function PaginaPacientes() {
 
     try {
       if (esEdicion && idPacienteAEditar !== null) {
-        // --- CASO EDICIÓN ---
-        // Para actualizar, inyectamos la propiedad 'estado' requerida por la API
         const payloadEdicion = {
           ...estructuraBase,
           estado: pacienteData.estado.toUpperCase(),
         };
-
         await actualizarPaciente(idPacienteAEditar, payloadEdicion);
         toast.success("¡Datos del paciente actualizados con éxito!");
       } else {
-        // --- CASO CREACIÓN ---
-        // Mandamos ÚNICA Y ESTRICTAMENTE las propiedades que espera tu backend (sin 'estado' ni campos extras)
         await crearPaciente(estructuraBase);
         toast.success("¡Paciente registrado con éxito!");
       }
 
-      // Código posterior común de UI
       setModalAbierto(false);
+      limpiarFormulario();
+      recargar(); // <-- Sincroniza la lista llamando de nuevo al fetch con AbortController limpio
     } catch (err) {
       toast.error("Ocurrió un error al procesar la solicitud en el servidor.");
     }
   };
-  // --------------------
 
   // Eliminar un Paciente
   const handleEliminar = (id: string | number, nombrePaciente?: string) => {
-    // Disparamos un toast de tipo "aviso/info" que pide confirmación
     toast("¿Seguro que deseas eliminar este paciente?", {
       description: nombrePaciente
         ? `Se eliminará a: ${nombrePaciente}`
         : undefined,
-      duration: Infinity, // Hace que el toast no se cierre solo hasta que elijan una opción
-      position: "top-center", // Lo centramos arriba para que tenga buena visibilidad
+      duration: Infinity,
+      position: "top-center",
       action: {
         label: "Eliminar",
         onClick: async () => {
-          // Si el usuario hace clic en "Eliminar", se ejecuta la acción del store
           try {
-            // El store ejecuta el DELETE en la API y filtra el array local automáticamente
             await eliminarPaciente(id);
-
-            // Notificación final de éxito
             toast.success("Paciente eliminado correctamente.");
+            recargar(); // <-- Refresca useApi
           } catch (err) {
-            // Aunque el store ya captura internamente el error en su variable global,
-            // mantenemos tu log y toast local por si quieres pintar la alerta de inmediato
             console.error("Error al eliminar:", err);
             toast.error("Ocurrió un error al intentar eliminar el paciente.");
           }
@@ -185,13 +182,10 @@ export default function PaginaPacientes() {
       },
       cancel: {
         label: "Cancelar",
-        onClick: () => {
-          toast.dismiss();
-        },
+        onClick: () => toast.dismiss(),
       },
     });
   };
-  // --------------------
 
   // Editar el estado de un Paciente
   const handleCambiarEstado = async (
@@ -199,25 +193,24 @@ export default function PaginaPacientes() {
     nuevoEstado: EstadoPaciente,
   ) => {
     try {
-      // El store ejecuta el PUT/PATCH y actualiza el array global internamente
       await actualizarPaciente(id, { estado: nuevoEstado });
       toast.success("¡Estado del paciente actualizado!");
+      recargar(); // <-- Refresca useApi de forma segura
     } catch (err) {
       toast.error("No se pudo cambiar el estado del paciente");
     }
   };
 
-  // --------------------
-
-  // Mostrar o visualizar en el futuro la ficha del paciente
-  const handleVerDetalles = (id: string | number) => {
-    console.log("Ver ficha del paciente con ID:", id);
+  // Limpiar formulario modal create/update
+  const limpiarFormulario = () => {
+    setEsEdicion(false);
+    setIdPacienteAEditar(null);
+    setPacienteData(dataInitPaciente);
   };
-  // --------------------
 
   // Editar un paciente seleccionado
   const handleEditar = (id: string | number) => {
-    // 1. Buscamos al paciente seleccionado dentro de la lista actual del estado
+    if (!pacientes) return; // Asegura que existan datos antes de buscar
     const pacienteSeleccionado = pacientes.find((p) => p.id === id);
 
     if (!pacienteSeleccionado) {
@@ -225,13 +218,9 @@ export default function PaginaPacientes() {
       return;
     }
 
-    // 2. Activamos la bandera de edición y guardamos el ID para usarlo luego en el PUT
     setEsEdicion(true);
     setIdPacienteAEditar(pacienteSeleccionado.id);
 
-    // 3. Rellenamos el estado del formulario con los datos reales del paciente.
-    // Nota: Si la fecha viene como ISO completo (ej: "1985-05-21T00:00:00.000Z"),
-    // usamos .split('T')[0] para extraer solo "1985-05-21", que es lo que el <input type="date" /> necesita para renderizarse.
     setPacienteData({
       nombres: pacienteSeleccionado.nombres,
       apellidos: pacienteSeleccionado.apellidos,
@@ -243,16 +232,12 @@ export default function PaginaPacientes() {
         : "",
       tiposangre: pacienteSeleccionado.tiposangre,
       alergias: pacienteSeleccionado.alergias || "",
-      estado: pacienteSeleccionado.estado,
+      estado: pacienteSeleccionado.estado.toUpperCase(),
       especialidadAsignada:
         pacienteSeleccionado.especialidadAsignada || "General",
     });
-
-    // 4. Abrimos la ventana modal (que ahora mostrará el título "Modificar Datos del Paciente")
     setModalAbierto(true);
   };
-
-  // --------------------
 
   return (
     <div className="min-h-screen bg-slate-50/50 px-6 py-4 md:py-6">
@@ -331,13 +316,19 @@ export default function PaginaPacientes() {
             Pacientes encontrados.
           </div>
         </div>
-
-        {/* Cuadrícula de Tarjetas */}
-        {pacientesFiltrados.length > 0 ? (
+        {cargando ? (
+          <div className="flex flex-col items-center justify-center min-h-[200px] p-6 space-y-4">
+            {/* Spinner animado en azul */}
+            <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            <p className="text-sm font-medium text-blue-700 animate-pulse">
+              La página está cargando...
+            </p>
+          </div>
+        ) : pacientesFiltrados.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {pacientesFiltrados.map((paciente) => (
               <PacienteCard
-                key={paciente.id.toString()}
+                key={paciente.id}
                 paciente={paciente}
                 // onVerDetalles={handleVerDetalles}
                 onEditar={handleEditar}
@@ -373,17 +364,21 @@ export default function PaginaPacientes() {
             </p>
           </div>
         )}
-        {/* ********************************************************************* */}
-        <ModalNuevoPaciente
-          isOpen={modalAbierto}
-          onClose={() => setModalAbierto(false)}
-          onSubmit={handleGuardarPaciente}
-          pacienteData={pacienteData}
-          setPacienteData={setPacienteData}
-          esEdicion={esEdicion}
-        />
-        {/* ********************************************************************* */}
       </div>
+
+      {/* ********************************************************************* */}
+      <ModalNuevoPaciente
+        isOpen={modalAbierto}
+        onClose={() => {
+          setModalAbierto(false);
+          limpiarFormulario();
+        }}
+        onSubmit={handleGuardarPaciente}
+        pacienteData={pacienteData}
+        setPacienteData={setPacienteData}
+        esEdicion={esEdicion}
+      />
+      {/* ********************************************************************* */}
     </div>
   );
 }

@@ -77,12 +77,16 @@ export const usePacientesStore = create<PacientesState>()(
 
       // Crear un nuevo paciente en el servidor
       crear: async (nuevoPaciente) => {
-        console.log('nuevoPaciente => ',nuevoPaciente);
-        
+        console.log("nuevoPaciente => ", nuevoPaciente);
+
         set({ cargando: true });
         try {
           const res = await api.post("/pacientes", nuevoPaciente);
-          const pacienteCreado = res.data.data || res.data;
+          const pacienteCreado = {
+            ...(res.data.data || res.data),
+            id: Number((res.data.data || res.data).id),
+          };
+          // const pacienteCreado = res.data.data || res.data;
 
           set((state) => ({
             pacientes: [...state.pacientes, pacienteCreado],
@@ -96,10 +100,17 @@ export const usePacientesStore = create<PacientesState>()(
 
       // Actualizar un paciente existente (Corregido a singular)
       actualizar: async (id, datosActualizados) => {
+        console.log('datosActualizados => ',datosActualizados);
+        
         set({ cargando: true });
+        console.log('datosActualizados => ',datosActualizados);
+        
         try {
           const res = await api.patch(`/pacientes/${id}`, datosActualizados);
-          const pacienteEditado = res.data.data || res.data;
+          const pacienteEditado = {
+            ...(res.data.data || res.data),
+            id: Number((res.data.data || res.data).id),
+          };
 
           const pacientesActualizados = get().pacientes.map((p) =>
             p.id === id ? pacienteEditado : p,
