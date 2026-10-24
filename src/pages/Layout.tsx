@@ -7,6 +7,7 @@ export default function Layout() {
   // Lista de enlaces de navegación (agrega o modifica según tus rutas)
   const enlaces = [
     { to: "/pacientes", texto: "Pacientes", icono: "👥" },
+    { to: "/reportes", texto: "Reportes", icono: "📊" },
     { to: "/citas/nueva", texto: "Agendar Cita", icono: "📅" },
     { to: "/consultas", texto: "Consultas Médicas", icono: "📋" },
     // { to: "/historial", texto: "Historial Clínico", icono: "📋" },

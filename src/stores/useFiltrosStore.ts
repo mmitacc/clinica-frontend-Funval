@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import type { EstadoConsulta } from "../types/Consulta";
+import type { EstadoConsulta } from "../types/consulta";
 
 export type EstadoCitaFiltro = EstadoConsulta | "todos";
 export type EstadoPacienteFiltro =
@@ -39,7 +39,7 @@ export const useFiltrosStore = create<FiltrosState>()(
       setEstadoCita: (estado) =>
         set({ estadoCitaFiltro: estado }, false, "setEstadoCita"),
       setEstadoPaciente: (estado) =>
-        set({ estadoPacienteFiltro: estado }, false, "setEstadoPaciente"), // 👈 Implementación
+        set({ estadoPacienteFiltro: estado }, false, "setEstadoPaciente"),
       resetFiltros: () => set(estadoInicial, false, "resetFiltros"),
     }),
     { name: "FiltrosStore" },

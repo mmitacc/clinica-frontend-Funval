@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { BuscadorPacientes } from "../componets/paciente/BuscadorPacientes";
 import { PacienteCard } from "../componets/paciente/PacienteCard";
 import type { EstadoPacienteFiltro } from "../stores/useFiltrosStore";

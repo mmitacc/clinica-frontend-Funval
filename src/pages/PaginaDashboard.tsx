@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { MetricCard } from "../componets/metrica/MetricCard";
 import { StatusBadge } from "../componets/metrica/StatusBadge";
 import type { Metrica } from "../types";
-import type { Consulta } from "../types/Consulta";
+import type { Consulta } from "../types/consulta";
 import { api } from "../lib/axios";
 
 export default function PaginaDashboard() {
