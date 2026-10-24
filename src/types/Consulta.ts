@@ -5,7 +5,8 @@ export interface Consulta {
   id_paciente: number;
   id_usuario: number;
   estado: EstadoConsulta;
-  costo: string;
+  costo: number;
+  motivo: string;
   registerdate: string;
   fecha: string;
   horario: string;

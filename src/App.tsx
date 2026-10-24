@@ -8,6 +8,7 @@ import "./App.css";
 import { PaginaDetallePaciente } from "./pages/PaginaDetallePaciente";
 import { PaginaConsultas } from "./pages/PaginaConsultas";
 import { Toaster } from "sonner";
+import { PaginaReportes } from "./pages/PaginaReportes";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
 
           {/* Rutas de tu aplicación */}
           <Route path="/dashboard" Component={PaginaDashboard} />
+          <Route path="/reportes" Component={PaginaReportes} />
           <Route path="/pacientes" Component={PaginaPacientes} />
           <Route path="/citas/nueva" Component={FormularioCita} />
           <Route path="/consultas" Component={PaginaConsultas} />

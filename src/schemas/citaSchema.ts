@@ -24,6 +24,8 @@ export const citaSchema = z.object({
       { message: "La fecha no puede ser anterior al día de hoy" },
     ),
 
+  costo: z.number().min(0, "El costo no puede ser negativo"),
+
   hora: z.string().regex(horaRegex, {
     message: "La hora debe tener un formato válido de 24 horas (HH:MM)",
   }),
