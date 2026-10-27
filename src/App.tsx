@@ -9,6 +9,9 @@ import { PaginaDetallePaciente } from "./pages/PaginaDetallePaciente";
 import { PaginaConsultas } from "./pages/PaginaConsultas";
 import { Toaster } from "sonner";
 import { PaginaReportes } from "./pages/PaginaReportes";
+import PaginaLogin from "./pages/PaginaLogin";
+import RutaProtegida from "./componets/RutaProtegida";
+import MonitorInactividad from "./componets/MonitorInactividad";
 
 function App() {
   return (
@@ -16,8 +19,19 @@ function App() {
       {" "}
       <Toaster richColors position="top-right" />
       <Routes>
-        {/* El Layout envuelve a todas las páginas hijas */}
-        <Route element={<Layout />}>
+        {/* 1. RUTA PÚBLICA: Fuera del Layout de la clínica */}
+        <Route path="/login" element={<PaginaLogin />} />
+
+        {/* 2. RUTAS PROTEGIDAS Y MONITOREADAS */}
+        <Route
+          element={
+            <RutaProtegida>
+              <MonitorInactividad>
+                <Layout />
+              </MonitorInactividad>
+            </RutaProtegida>
+          }
+        >
           {/* Redirección por defecto */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
@@ -32,7 +46,7 @@ function App() {
             element={<div>Página de Historial (Próximamente)</div>}
           />
           <Route path="/pacientes/:id" Component={PaginaDetallePaciente} />
-          {/* CAPTURA CUALQUIER RUTA QUE NO COINCIDA CON LAS DE ARRIBA */}
+          {/* Captura cualquier ruta interna inválida */}
           <Route path="*" element={<PaginaNotFound />} />
         </Route>
       </Routes>

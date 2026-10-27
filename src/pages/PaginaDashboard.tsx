@@ -140,8 +140,8 @@ export default function PaginaDashboard() {
 
         {/* REQUISITO: Cuadrícula con las 4 métricas integradas */}
         <main className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {metricasClinica.map((m) => (
-            <MetricCard metrica={m} />
+          {metricasClinica.map((m, index) => (
+            <MetricCard key={index} metrica={m} />
           ))}
         </main>
       </div>
