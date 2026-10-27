@@ -1,8 +1,22 @@
 import { useState } from "react";
-import { NavLink, Outlet } from "react-router";
+import { NavLink, Outlet, useNavigate } from "react-router";
+import { useAuthStore } from "../stores/useAuthStore";
+import { toast } from "sonner";
+import ModalCambiarPassword from "../componets/ModalCambiarPassword";
 
 export default function Layout() {
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [modalPasswordAbierto, setModalPasswordAbierto] = useState(false);
+  const logout = useAuthStore((state) => state.logout);
+  const usuario = useAuthStore((state) => state.usuario);
+  const navigate = useNavigate();
+
+  // Handdle para salir de sesión en el sistema
+  const handleLogout = () => {
+    logout();
+    toast.info("Sesión cerrada correctamente.");
+    navigate("/login", { replace: true });
+  };
 
   // Lista de enlaces de navegación (agrega o modifica según tus rutas)
   const enlaces = [
@@ -100,8 +114,72 @@ export default function Layout() {
           </nav>
         </div>
 
+        {/* CONTENEDOR UNIFICADO ACCIONES DE LA CUENTA */}
+
+        <div className="mt-auto p-2">
+          <div className="bg-blue-50/60 border border-amber-200/80 rounded-xl p-3 shadow-inner space-y-1">
+            {/* Encabezado del Usuario */}
+            <div className="px-2 mb-2 border-b border-amber-200/40 pb-1">
+              <p className="text-sm font-semibold text-blue-800 truncate">
+                {usuario?.role || "Personal"}:{" "}
+                {usuario?.username || "Usuario Clínico"}
+              </p>
+            </div>
+
+            {/* BOTÓN 1: Cambiar Contraseña */}
+            <button
+              onClick={() => setModalPasswordAbierto(true)}
+              className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-200 rounded-md transition-colors group"
+            >
+              <svg
+                className="w-4 h-4 text-green-700"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://w3.org"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
+              </svg>
+              New Password
+            </button>
+
+            {/* BOTÓN 2: Cerrar sesión */}
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-200 rounded-md transition-colors group"
+            >
+              <svg
+                className="w-4 h-4 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://w3.org"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
+              Cerrar Sesión
+            </button>
+          </div>
+
+          {/* El componente del modal montado en la estructura */}
+          <ModalCambiarPassword
+            isOpen={modalPasswordAbierto}
+            onClose={() => setModalPasswordAbierto(false)}
+          />
+        </div>
+
         {/* Footer del Sidebar opcional */}
-        <div className="border-t bg-white border-slate-100 pt-4 px-2 text-xs text-slate-400">
+        <div className="border-t pt-1 px-1 text-xs text-slate-400">
           v1.0.0 — mmitacc — ©2026
         </div>
       </aside>
