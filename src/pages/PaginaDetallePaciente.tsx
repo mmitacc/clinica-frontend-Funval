@@ -4,7 +4,7 @@ import { api } from "../lib/axios";
 import type { Paciente } from "../types/paciente";
 import PaginaNotFound from "./PaginaNotFound";
 
-export function PaginaDetallePaciente() {
+export default function PaginaDetallePaciente() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 

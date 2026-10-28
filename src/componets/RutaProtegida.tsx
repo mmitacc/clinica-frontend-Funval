@@ -1,19 +1,16 @@
-import { Navigate, useLocation } from "react-router";
+import { Navigate, Outlet } from "react-router";
 import { useAuthStore } from "../stores/useAuthStore";
 
-interface Props {
-  children: React.ReactNode;
+interface RutaProtegidaProps {
+  rolesPermitidos?: string[];
 }
 
-export default function RutaProtegida({ children }: Props) {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const location = useLocation();
+export default function RutaProtegida({ rolesPermitidos }: RutaProtegidaProps) {
+  const { isAuthenticated, usuario } = useAuthStore();
 
-  // Si el médico o administrador NO está autenticado, lo mandamos al Login
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (rolesPermitidos && !rolesPermitidos.includes(usuario!.role)) {
+    return <Navigate to="/sin-acceso" replace />;
   }
-
-  // Si está autenticado, permitimos el acceso a las páginas hijas (Layout/Dashboard...)
-  return <>{children}</>;
+  return <Outlet />;
 }

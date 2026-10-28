@@ -9,7 +9,7 @@ interface ReporteEspecialidad {
   total: number;
 }
 
-export function PaginaReportes() {
+export default function PaginaReportes() {
   const [especialidades, setEspecialidades] = useState<ReporteEspecialidad[]>(
     [],
   );
@@ -30,10 +30,10 @@ export function PaginaReportes() {
           api.get("/especialidades/reportes"),
           api.get("/consultas"),
         ]);
-        console.log('especialidaddes reporte => ',resEspecialidades);
-        
+
         if (!unmounted) {
-          const dataEsp = resEspecialidades.data.data.data || resEspecialidades.data;
+          const dataEsp =
+            resEspecialidades.data.data.data || resEspecialidades.data;
           const dataCons = resConsultas.data.data || resConsultas.data;
 
           setEspecialidades(Array.isArray(dataEsp) ? dataEsp : []);

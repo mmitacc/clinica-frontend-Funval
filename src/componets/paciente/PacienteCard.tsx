@@ -8,11 +8,10 @@
 import type { Paciente } from "../../types/paciente";
 import { BadgeEstado } from "./BadgeEstado";
 import { Link } from "react-router";
+import { useAuthStore } from "../../stores/useAuthStore";
 
 interface PacienteCardProps {
   paciente: Paciente;
-  // Corregido: id acepta string | number para alinearse con la nueva interfaz
-  // onVerDetalles?: (id: string | number) => void;
   onEditar?: (id: string | number) => void;
   onEliminar?: (id: string | number, nombrePaciente?: string) => void;
   onCambiarEstado?: (
@@ -41,6 +40,14 @@ export function PacienteCard({
   } = paciente;
 
   const iniciales = `${nombres.charAt(0)}${apellidos.charAt(0)}`.toUpperCase();
+
+  // Traemos el usuario actual para verificar el rol
+  const usuario = useAuthStore((state) => state.usuario);
+  const rolUsuario = usuario?.role;
+  
+  // Condición de seguridad para Gerencia y Admin
+  const tienePermisoModificar =
+    rolUsuario === "ADMIN" || rolUsuario === "GERENCIA";
 
   return (
     <article className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg max-w-sm w-full">
@@ -218,48 +225,52 @@ export function PacienteCard({
           >
             Ver ficha
           </Link>
+          {/* CONTENEDOR PROTEGIDO: Solo se renderiza si es ADMIN o GERENCIA */}
+          {tienePermisoModificar && (
+            <>
+              <button
+                type="button"
+                onClick={() => onEditar?.(id)}
+                className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white p-2 text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900 active:scale-[0.98]"
+                title="Editar paciente"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                  />
+                </svg>
+              </button>
 
-          <button
-            type="button"
-            onClick={() => onEditar?.(id)}
-            className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white p-2 text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900 active:scale-[0.98]"
-            title="Editar paciente"
-          >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-              />
-            </svg>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onEliminar?.(id, `${nombres} ${apellidos}`)}
-            className="inline-flex items-center justify-center rounded-lg border border-red-100 bg-red-50 p-2 text-red-600 transition-all hover:bg-red-100 active:scale-[0.98]"
-            title="Eliminar paciente"
-          >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              />
-            </svg>
-          </button>
+              <button
+                type="button"
+                onClick={() => onEliminar?.(id, `${nombres} ${apellidos}`)}
+                className="inline-flex items-center justify-center rounded-lg border border-red-100 bg-red-50 p-2 text-red-600 transition-all hover:bg-red-100 active:scale-[0.98]"
+                title="Eliminar paciente"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              </button>
+            </>
+          )}
         </div>
       </footer>
     </article>
