@@ -3,7 +3,7 @@ import { useCitasStore } from "../stores/useCitasStore";
 import type { Consulta } from "../types/consulta";
 import type { RespuestaPaginado } from "../types/api";
 
-export function PaginaConsultas() {
+export default function PaginaConsultas() {
   // 1. Consumo de estados y acciones de Zustand
   const citas = useCitasStore((state) => state.citas);
   const cargando = useCitasStore((state) => state.cargando);

@@ -120,7 +120,10 @@ export default function Layout() {
           <div className="bg-blue-50/60 border border-amber-200/80 rounded-xl p-3 shadow-inner space-y-1">
             {/* Encabezado del Usuario */}
             <div className="px-2 mb-2 border-b border-amber-200/40 pb-1">
-              <p className="text-sm font-semibold text-blue-800 truncate">
+              <p
+                className="text-sm font-semibold text-blue-800 truncate"
+                title={`${usuario?.role || "Personal"}: ${usuario?.username || "Usuario Clínico"}`}
+              >
                 {usuario?.role || "Personal"}:{" "}
                 {usuario?.username || "Usuario Clínico"}
               </p>
