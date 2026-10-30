@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
+  <rect width="100%" height="100%" fill="#F8FAFC" rx="16"/>
+  <defs>
+    <style type="text/css">
+      .stroke-main { stroke: #334155; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .fill-body { fill: #FFFFFF; }
+      .accent-blue { stroke: #3B82F6; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .accent-blue-fill { fill: #3B82F6; stroke: #3B82F6; stroke-width: 4; stroke-linejoin: round; }
+    </style>
+  </defs>
+  <g transform="translate(10, 10)">
+    <!-- Cabello Ejecutivo -->
+    <path class="stroke-main" d="M85,90 C80,45 105,25 140,25 C175,25 200,45 195,90" />
+    <path class="stroke-main" d="M85,90 C95,102 110,100 115,115" />
+    <path class="stroke-main" d="M195,90 C185,102 170,100 165,115" />
+    <path class="stroke-main" d="M100,55 C120,45 140,55 160,45" />
+    <!-- Rostro -->
+    <path class="stroke-main fill-body" d="M115,115 C115,150 120,170 140,170 C160,170 165,150 165,115" />
+    <!-- Cuello Camisa -->
+    <path class="stroke-main" d="M122,165 L122,190 L132,198" />
+    <path class="stroke-main" d="M158,165 L158,190 L148,198" />
+    <!-- Traje/Saco -->
+    <path class="stroke-main fill-body" d="M48,220 C48,200 65,185 95,185 L185,185 C215,185 232,200 232,220 L232,260 L48,260 Z" />
+    <!-- Solapas Saco -->
+    <path class="stroke-main" d="M95,185 L120,230 L140,260" />
+    <path class="stroke-main" d="M185,185 L160,230 L140,260" />
+    <!-- Corbata Corporativa (Acento) -->
+    <path class="accent-blue-fill" d="M132,198 L148,198 L152,210 L140,255 L128,210 Z" />
+  </g>
+</svg>

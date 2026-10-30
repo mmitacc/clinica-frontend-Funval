@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
+  <rect width="100%" height="100%" fill="#F8FAFC" rx="16"/>
+  <defs>
+    <style type="text/css">
+      .stroke-main { stroke: #334155; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .fill-body { fill: #FFFFFF; }
+      .accent-blue { stroke: #3B82F6; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .accent-blue-fill { fill: #3B82F6; }
+    </style>
+  </defs>
+  <g transform="translate(10, 10)">
+    <!-- Cabello Estilizado Recepción -->
+    <path class="stroke-main" d="M85,100 C80,40 100,28 140,28 C180,28 200,40 195,100" />
+    <path class="stroke-main" d="M85,100 C90,115 105,105 112,120" />
+    <path class="stroke-main" d="M195,100 C190,115 175,105 168,120" />
+    <!-- Rostro -->
+    <path class="stroke-main fill-body" d="M112,120 C112,152 120,172 140,172 C160,172 168,152 168,120" />
+    <!-- Auricular de Diadema (Headset CallCenter) -->
+    <path class="stroke-main" d="M104,120 C104,70 176,70 176,120" />
+    <rect x="96" y="112" width="10" height="20" rx="4" class="accent-blue-fill" />
+    <rect x="174" y="112" width="10" height="20" rx="4" class="accent-blue-fill" />
+    <!-- Micrófono ajustable hacia la boca -->
+    <path class="stroke-main" d="M101,128 C101,150 115,155 125,155" />
+    <!-- Cuello y Uniforme Institucional -->
+    <path class="stroke-main" d="M122,168 L122,192" />
+    <path class="stroke-main" d="M158,168 L158,192" />
+    <path class="stroke-main fill-body" d="M48,222 C48,202 65,188 95,188 L185,188 C215,188 232,202 232,222 L232,260 L48,260 Z" />
+    <path class="accent-blue" d="M105,188 L140,225 L175,188" />
+  </g>
+</svg>
