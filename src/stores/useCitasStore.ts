@@ -24,7 +24,7 @@ interface CitasState {
   resetStore: () => void;
 }
 
-// Creación del Store con Zustand y Devtools
+// Creación del Store con Zustand y Devtools con retraso
 export const useCitasStore = create<CitasState>()(
   devtools(
     (set, get) => ({
@@ -37,8 +37,14 @@ export const useCitasStore = create<CitasState>()(
       cargarTodas: async () => {
         set({ cargando: true, error: null });
         try {
-          const res = await api.get("/consultas");
-          set({ citas: res.data.data || res.data, cargando: false });
+          // 1. Hacemos la petición real al backend
+          const respuesta = await api.get("/consultas");
+
+          // 2. CREAMOS EL RETRASO ARTIFICIAL (Ej. 2500 milisegundos = 2.5 segundos)
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+
+          // 3. Una vez pasa el tiempo, guardamos los datos y apagamos el Skeleton
+          set({ citas: respuesta.data, cargando: false });
         } catch (err) {
           set({ error: extraerMensajeError(err), cargando: false });
         }
@@ -92,7 +98,7 @@ export const useCitasStore = create<CitasState>()(
       agregarCita: async (nuevaCita) => {
         set({ cargando: true, error: null });
         console.log("nuevaCita => ", nuevaCita);
-        const {estado, ...newCita} = nuevaCita;
+        const { estado, ...newCita } = nuevaCita;
         try {
           const res = await api.post("/consultas", newCita);
           const citaCreada = res.data.data || res.data;
