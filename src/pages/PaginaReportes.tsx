@@ -3,6 +3,7 @@ import { api } from "../lib/axios";
 import { extraerMensajeError } from "../lib/errorHandler";
 import { GraficaCitaEspecialidad } from "../componets/GraficasCitasEspecialidad";
 import type { Consulta } from "../types/consulta";
+import EncabezadoPagina from "../componets/EncabezadoPagina";
 
 interface ReporteEspecialidad {
   especialidad: string;
@@ -114,14 +115,18 @@ export default function PaginaReportes() {
   // RENDER: PÁGINA FINAL CON INYECCIÓN DE PROPS
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div className="border-b pb-4">
+      <EncabezadoPagina
+        titulo="Panel de Reportes y Estadísticas"
+        descripcion="Monitoreo analítico del rendimiento de consultas médicas"
+      />
+      {/* <div className="border-b pb-4">
         <h1 className="text-2xl font-bold text-gray-800">
           Panel de Reportes y Estadísticas
         </h1>
         <p className="text-sm text-gray-500 mt-1">
           Monitoreo analítico del rendimiento de consultas médicas.
         </p>
-      </div>
+      </div> */}
 
       {/* Aquí inyectamos el componente visual pasándole los datos calculados */}
       <GraficaCitaEspecialidad
