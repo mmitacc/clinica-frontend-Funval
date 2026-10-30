@@ -8,7 +8,8 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 
 export default function PaginaLogin() {
-  const { login: setAuth } = useAuthStore();
+  // 💡 Sincronizado: Traemos el método asíncrono 'login' del useAuthStore
+  const { login } = useAuthStore();
   const navigate = useNavigate();
   const [cargando, setCargando] = useState(false);
   const [mostrarPassword, setMostrarPassword] = useState(false);
@@ -22,18 +23,17 @@ export default function PaginaLogin() {
   const onSubmit = async (datos: LoginFormData) => {
     setCargando(true);
     try {
+      // Enviamos las credenciales a tu servicio de Axios en NestJS
       const respuesta = await loginAuthService(datos);
       const token = respuesta.data.token;
-      const base64Payload = token.split(".")[1];
-      const payloadDecodificado = JSON.parse(atob(base64Payload));
-      const usuario = {
-        id: payloadDecodificado.sub || payloadDecodificado.id,
-        username: payloadDecodificado.username,
-        email: payloadDecodificado.email,
-        role: payloadDecodificado.role,
-      };
-      setAuth(token, usuario);
-      toast.success(`¡Bienvenido: ${usuario.username}!`);
+
+      // ELIMINADO: Ya no decodificamos el Base64 (atob) aquí porque venía recortado sin foto ni teléfono.
+
+      // LA MAGIA: Le pasamos el token a Zustand.
+      // El store guardará el token y automáticamente hará el GET a /auth/profile por ti.
+      await login(token);
+
+      toast.success("Sesión iniciada correctamente");
       navigate("/", { replace: true });
     } catch (err) {
       toast.error(extraerMensajeError(err));

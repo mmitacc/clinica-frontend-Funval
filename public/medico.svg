@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
+  <rect width="100%" height="100%" fill="#F8FAFC" rx="16"/>
+  <defs>
+    <style type="text/css">
+      .stroke-main { stroke: #334155; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .fill-body { fill: #FFFFFF; }
+      .accent-blue { stroke: #3B82F6; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .accent-blue-fill { fill: #3B82F6; }
+      .hair-shadow { fill: #E2E8F0; }
+    </style>
+  </defs>
+  <g transform="translate(10, 10)">
+    <path class="hair-shadow" d="M140,30 C190,30 200,60 190,95 C175,90 165,75 140,85 C115,75 105,90 90,95 C80,60 90,30 140,30 Z" />
+    <path class="stroke-main" d="M90,95 C80,50 100,30 140,30 C180,30 200,50 190,95" />
+    <path class="stroke-main" d="M190,95 C180,110 170,105 165,115" />
+    <path class="stroke-main" d="M90,95 C100,110 110,105 115,115" />
+    <path class="stroke-main fill-body" d="M115,115 C115,150 120,170 140,170 C160,170 165,150 165,115" />
+    <path class="stroke-main" d="M122,165 L122,190 C122,195 125,200 130,202" />
+    <path class="stroke-main" d="M158,165 L158,190 C158,195 155,200 150,202" />
+    <path class="accent-blue" d="M122,185 C132,192 148,192 158,185" />
+    <path class="stroke-main fill-body" d="M48,220 C48,200 65,185 95,185 L185,185 C215,185 232,200 232,220 L232,260 L48,260 Z" />
+    <path class="accent-blue" d="M110,185 L110,215 L130,230" />
+    <path class="accent-blue" d="M170,185 L170,215 L150,230" />
+    <path class="stroke-main" d="M110,185 L140,250 L170,185" />
+    <path class="stroke-main" d="M112,187 C112,230 84,215 84,195 L84,185" />
+    <path class="stroke-main" d="M168,187 C168,230 196,215 196,195" />
+    <circle cx="196" cy="230" r="14" class="accent-blue" fill="#FFFFFF" />
+    <circle cx="196" cy="230" r="4" class="accent-blue-fill" />
+  </g>
+</svg>

@@ -3,12 +3,15 @@ import { NavLink, Outlet, useNavigate } from "react-router";
 import { useAuthStore } from "../stores/useAuthStore";
 import { toast } from "sonner";
 import ModalCambiarPassword from "../componets/ModalCambiarPassword";
+import { PaginaPerfil } from "./PaginaPerfil";
 
 export default function Layout() {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [modalPasswordAbierto, setModalPasswordAbierto] = useState(false);
+  const [modalPerfilAbierto, setModalPerfilAbierto] = useState(false);
   const logout = useAuthStore((state) => state.logout);
   const usuario = useAuthStore((state) => state.usuario);
+  const fotoUsuario = useAuthStore((state) => state.usuario?.foto);
   const navigate = useNavigate();
 
   // Handdle para salir de sesión en el sistema
@@ -41,7 +44,6 @@ export default function Layout() {
       {/* 📱 BARRA SUPERIOR PARA MÓVILES */}
       <header className="md:hidden bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-2.5">
-          {/* Icono SVG estilizado en azul */}
           <div className="p-1.5 bg-blue-500 text-white rounded-lg shadow-sm shadow-blue-100 flex items-center justify-center shrink-0">
             <svg
               className="h-5 w-5"
@@ -69,18 +71,20 @@ export default function Layout() {
         </button>
       </header>
 
-      {/* 💻 SIDEBAR (Fijo en escritorio, colapsable en móvil) */}
+      {/* 💻 SIDEBAR CORREGIDO */}
       <aside
-        className={`w-64 bg-amber-50/50 border-r border-slate-200/80 p-5 flex flex-col justify-between fixed md:sticky top-[57px] md:top-0 h-[calc(100vh-57px)] md:h-screen z-30 transition-transform duration-300 md:translate-x-0 ${
+        /* 💡 CORREGIDO: Cambiamos p-5 por px-4 py-3 para darle un respiro vertical y evitar desbordes por sumatorias de padding */
+        className={`w-64 bg-amber-50/50 border-r border-slate-200/80 px-4 py-3 flex flex-col justify-between fixed md:sticky top-[57px] md:top-0 h-[calc(100vh-57px)] md:h-screen z-30 transition-transform duration-300 md:translate-x-0 ${
           menuAbierto ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
-        <div className="space-y-6">
+        {/* Contenedor Superior (Logo + Links) */}
+        <div className="space-y-5">
           {/* Logo en Escritorio con SVG */}
-          <div className="hidden bg-white md:flex items-center gap-2.5 px-2 py-1">
+          <div className="hidden bg-white md:flex items-center gap-2.5 px-2 py-1.5 rounded-lg border border-slate-100">
             <div className="p-2 bg-blue-600 text-white rounded-xl shadow-md shadow-blue-200 flex items-center justify-center shrink-0">
               <svg
-                className="h-6 w-6"
+                className="h-5 w-5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -93,18 +97,18 @@ export default function Layout() {
                 />
               </svg>
             </div>
-            <span className="text-lg font-bold text-slate-900 tracking-tight">
+            <span className="text-base font-bold text-slate-900 tracking-tight">
               Clínica FUNVAL
             </span>
           </div>
 
           {/* Enlaces de Navegación */}
-          <nav className="space-y-1.5">
+          <nav className="space-y-1">
             {enlaces.map((enlace) => (
               <NavLink
                 key={enlace.to}
                 to={enlace.to}
-                onClick={() => setMenuAbierto(false)} // Cierra el menú móvil al hacer clic
+                onClick={() => setMenuAbierto(false)}
                 className={obtenerEstiloEnlace}
               >
                 <span className="text-base shrink-0">{enlace.icono}</span>
@@ -114,28 +118,71 @@ export default function Layout() {
           </nav>
         </div>
 
-        {/* CONTENEDOR UNIFICADO ACCIONES DE LA CUENTA */}
-
-        <div className="mt-auto p-2">
+        {/* CONTENEDOR UNIFICADO ACCIONES DE LA CUENTA (PERFECTAMENTE AJUSTADO AL PISO) 👇 */}
+        <div className="w-full pt-2 pb-1">
           <div className="bg-blue-50/60 border border-amber-200/80 rounded-xl p-3 shadow-inner space-y-1">
-            {/* Encabezado del Usuario */}
-            <div className="px-2 mb-2 border-b border-amber-200/40 pb-1">
-              <p
-                className="text-sm font-semibold text-blue-800 truncate"
-                title={`${usuario?.role || "Personal"}: ${usuario?.username || "Usuario Clínico"}`}
-              >
-                {usuario?.role || "Personal"}:{" "}
-                {usuario?.username || "Usuario Clínico"}
-              </p>
+            <div className="px-1 mb-1.5 border-b border-amber-200/40 pb-1.5 flex items-center gap-2.5">
+              {/* Contenedor rígido de la foto */}
+              <div className="w-8 h-8 rounded-full overflow-hidden border border-slate-200 shadow-sm bg-white flex-shrink-0">
+                <img
+                  src={
+                    fotoUsuario ||
+                    (usuario?.role === "MEDICO"
+                      ? "/medico.svg"
+                      : usuario?.role === "ADMIN"
+                        ? "/admin.svg"
+                        : usuario?.role === "GERENCIA"
+                          ? "/gerente.svg"
+                          : "/recepcionista.svg")
+                  }
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              {/* Textos del Perfil Clínico */}
+              <div className="overflow-hidden min-w-0 flex-1">
+                <p
+                  className="text-xs font-bold text-blue-800 truncate"
+                  title={`${usuario?.role || "Personal"}: ${usuario?.username || "Usuario"}`}
+                >
+                  {usuario?.role || "ADMIN"}:{" "}
+                  <span className="font-normal text-slate-700">
+                    {usuario?.username || "admin"}
+                  </span>
+                </p>
+              </div>
             </div>
+
+            {/* BOTÓN INTERMEDIO: Actualizar Perfil */}
+            <button
+              onClick={() => setModalPerfilAbierto(true)}
+              className="w-full flex items-center gap-2.5 px-2 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100/80 rounded-md transition-colors group"
+            >
+              <svg
+                className="w-3.5 h-3.5 text-blue-700"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://w3.org"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+              Editar Perfil
+            </button>
 
             {/* BOTÓN 1: Cambiar Contraseña */}
             <button
               onClick={() => setModalPasswordAbierto(true)}
-              className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-200 rounded-md transition-colors group"
+              className="w-full flex items-center gap-2.5 px-2 py-1.5 text-xs font-medium text-green-700 hover:bg-green-100/80 rounded-md transition-colors group"
             >
               <svg
-                className="w-4 h-4 text-green-700"
+                className="w-3.5 h-3.5 text-green-700"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -154,10 +201,10 @@ export default function Layout() {
             {/* BOTÓN 2: Cerrar sesión */}
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-200 rounded-md transition-colors group"
+              className="w-full flex items-center gap-2.5 px-2 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100/80 rounded-md transition-colors group"
             >
               <svg
-                className="w-4 h-4 text-red-600"
+                className="w-3.5 h-3.5 text-red-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -173,27 +220,27 @@ export default function Layout() {
               Cerrar Sesión
             </button>
           </div>
-
-          {/* El componente del modal montado en la estructura */}
-          <ModalCambiarPassword
-            isOpen={modalPasswordAbierto}
-            onClose={() => setModalPasswordAbierto(false)}
-          />
-        </div>
-
-        {/* Footer del Sidebar opcional */}
-        <div className="border-t pt-1 px-1 text-xs text-slate-400">
-          v1.0.0 — mmitacc — ©2026
         </div>
       </aside>
 
       {/* 🔹 CONTENEDOR PRINCIPAL DINÁMICO */}
-      <main className="flex-1 min-w-0 overflow-x-hidden">
-        {/* Aquí React Router inyectará automáticamente la página activa */}
+      <main className="flex-1 min-w-0 overflow-x-hidden p-6">
         <Outlet />
       </main>
 
-      {/* Fondo oscuro traslúcido al abrir menú en móvil */}
+      {/* 🔹 ENCAPSULAMIENTO DE MODALES AL FINAL DEL FLUJO */}
+      <ModalCambiarPassword
+        isOpen={modalPasswordAbierto}
+        onClose={() => setModalPasswordAbierto(false)}
+      />
+
+      {modalPerfilAbierto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
+          <PaginaPerfil onClose={() => setModalPerfilAbierto(false)} />
+        </div>
+      )}
+
+      {/* Fondo oscuro traslúcido para móviles al desplegar el menú */}
       {menuAbierto && (
         <div
           onClick={() => setMenuAbierto(false)}
