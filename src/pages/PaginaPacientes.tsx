@@ -11,6 +11,9 @@ import { useFiltrosStore } from "../stores/useFiltrosStore";
 import { useApi } from "../hooks/useApi"; // <-- Importamos tu hook genérico
 import useDebounce from "../hooks/useDebounce";
 import type { Paciente } from "../types/paciente";
+import SpinnerPaginaPaciente from "../componets/ui/SpinnerPaginaPaciente";
+import { EstadoVacio } from "../componets/ui/EstadoVacio";
+import { Label } from "recharts";
 
 export default function PaginaPacientes() {
   // Datos de paciente inicial
@@ -33,6 +36,7 @@ export default function PaginaPacientes() {
   const estadoPacienteFiltro = useFiltrosStore((s) => s.estadoPacienteFiltro);
   const setEstadoPaciente = useFiltrosStore((s) => s.setEstadoPaciente);
   const setBusqueda = useFiltrosStore((s) => s.setQueryPacientes);
+  const resetFiltros = useFiltrosStore((s) => s.resetFiltros);
 
   // Acciones mutate de Zustand
   const crearPaciente = usePacientesStore((s) => s.crear);
@@ -317,13 +321,7 @@ export default function PaginaPacientes() {
           </div>
         </div>
         {cargando ? (
-          <div className="flex flex-col items-center justify-center min-h-[200px] p-6 space-y-4">
-            {/* Spinner animado en azul */}
-            <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-            <p className="text-sm font-medium text-blue-700 animate-pulse">
-              La página está cargando...
-            </p>
-          </div>
+          <SpinnerPaginaPaciente />
         ) : pacientesFiltrados.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {pacientesFiltrados.map((paciente) => (
@@ -339,30 +337,11 @@ export default function PaginaPacientes() {
           </div>
         ) : (
           /* Estado de búsqueda sin resultados */
-          <div className="flex flex-col items-center justify-center bg-white border border-dashed border-slate-200 rounded-3xl p-12 text-center shadow-sm">
-            <div className="h-12 w-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 mb-4">
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-sm font-semibold text-slate-900">
-              No se encontraron pacientes
-            </h3>
-            <p className="text-xs text-slate-500 mt-1 max-w-xs">
-              No hay registros que coincidan con tu búsqueda "{busqueda}".
-              Intenta con otro término.
-            </p>
-          </div>
+          <EstadoVacio
+            titulo="No se encontraron pacientes"
+            descripcion={`No hay registros que coincidan con tu búsqueda: ${busqueda}. Intenta con otro término.`}
+            accion={{ label: "Limpiar Filtros", onClick: () => resetFiltros() }}
+          />
         )}
       </div>
 
