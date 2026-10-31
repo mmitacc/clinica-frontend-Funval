@@ -4,6 +4,7 @@ import { extraerMensajeError } from "../lib/errorHandler";
 import { GraficaCitaEspecialidad } from "../componets/GraficasCitasEspecialidad";
 import type { Consulta } from "../types/consulta";
 import EncabezadoPagina from "../componets/EncabezadoPagina";
+import SkeletonPaginaReportes from "../componets/ui/SkeletonPaginaReportes";
 
 interface ReporteEspecialidad {
   especialidad: string;
@@ -76,31 +77,6 @@ export default function PaginaReportes() {
       .slice(-7);
   }, [consultas]);
 
-  // RENDER: SKELETON DE CARGA (Tailwind pulse)
-  if (cargando) {
-    return (
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
-        <div className="h-8 bg-slate-200 rounded w-1/4 animate-pulse"></div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {[1, 2].map((i) => (
-            <div
-              key={i}
-              className="rounded-xl border border-slate-200 bg-white p-6 space-y-4 animate-pulse"
-            >
-              <div className="h-5 bg-slate-200 rounded w-1/3"></div>
-              <div className="h-[280px] bg-slate-100 rounded-lg flex items-end justify-between p-4 space-x-2">
-                <div className="w-full bg-slate-200 rounded-t h-[40%]"></div>
-                <div className="w-full bg-slate-200 rounded-t h-[75%]"></div>
-                <div className="w-full bg-slate-200 rounded-t h-[20%]"></div>
-                <div className="w-full bg-slate-200 rounded-t h-[60%]"></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   // RENDER: MANEJO DE ERRORES HTTP
   if (error) {
     return (
@@ -119,20 +95,16 @@ export default function PaginaReportes() {
         titulo="Panel de Reportes y Estadísticas"
         descripcion="Monitoreo analítico del rendimiento de consultas médicas"
       />
-      {/* <div className="border-b pb-4">
-        <h1 className="text-2xl font-bold text-gray-800">
-          Panel de Reportes y Estadísticas
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Monitoreo analítico del rendimiento de consultas médicas.
-        </p>
-      </div> */}
 
       {/* Aquí inyectamos el componente visual pasándole los datos calculados */}
-      <GraficaCitaEspecialidad
-        especialidades={especialidades}
-        flujoDias={datosCitasPorDia}
-      />
+      {cargando ? (
+        <SkeletonPaginaReportes />
+      ) : (
+        <GraficaCitaEspecialidad
+          especialidades={especialidades}
+          flujoDias={datosCitasPorDia}
+        />
+      )}
     </div>
   );
 }

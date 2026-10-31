@@ -24,36 +24,75 @@ export default function PaginaDashboard() {
       setTotalConsultas(res.data.data ?? []);
     });
   }, []);
-  // Citas Programadas
+  // Citas Datos de Hoy y Ayer
   const hoy = new Date();
   const fechaHoyString = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
-  const citasHoy = totalConsultas.filter((consulta) => {
+  const ayer = new Date(hoy);
+  ayer.setDate(hoy.getDate() - 1); // JavaScript ajusta meses y años automáticamente aquí
+  const fechaAyerString = `${ayer.getFullYear()}-${String(ayer.getMonth() + 1).padStart(2, "0")}-${String(ayer.getDate()).padStart(2, "0")}`;
+
+  // Filtros de citas de Hoy y Ayer
+  const activasHoy = totalConsultas.filter((consulta) => {
     return (
-      consulta.fecha === fechaHoyString && consulta.estado === "PROGRAMADA"
+      consulta.fecha === fechaHoyString &&
+      (consulta.estado === "PROGRAMADA" || consulta.estado === "COMPLETADA")
     );
   });
-  // Consultas completadas hoy
   const programadasHoy = totalConsultas.filter((consulta) => {
     return (
       consulta.fecha === fechaHoyString && consulta.estado === "PROGRAMADA"
     );
   });
+  const activasAyer = totalConsultas.filter((consulta) => {
+    return (
+      consulta.fecha === fechaAyerString &&
+      (consulta.estado === "PROGRAMADA" || consulta.estado === "COMPLETADA")
+    );
+  });
+  const programadasAyer = totalConsultas.filter((consulta) => {
+    return (
+      consulta.fecha === fechaAyerString && consulta.estado === "PROGRAMADA"
+    );
+  });
+
+  // Capacidad máxima de la Clínica
+  const capacidadMaximaCitasDia = 16;
+
+  // Paciente únicos del día
+  const pacientesUnicosSetHoy = new Set(
+    activasHoy.map((consulta) => consulta.id_paciente),
+  );
+  const pacientesUnicosSetAyer = new Set(
+    activasAyer.map((consulta) => consulta.id_paciente),
+  );
+
+  // Tendencias
+  const pacientesT: number =
+    pacientesUnicosSetHoy.size - pacientesUnicosSetAyer.size;
+  const citasT: number = activasHoy.length - activasAyer.length;
+  const programadasT: number = programadasHoy.length - programadasAyer.length;
+  const disponibilidadHoy: number = capacidadMaximaCitasDia - activasHoy.length;
+  const disponibilidadAyer: number =
+    capacidadMaximaCitasDia - activasAyer.length;
+  const disponibilidadT: number = disponibilidadHoy - disponibilidadAyer;
+
   // Data de Metricas Clínicas
   const metricasClinica: Metrica[] = [
     {
       id: "paciente",
       titulo: "Pacientes",
-      valor: totalPacientes,
+      valor: pacientesUnicosSetHoy.size,
       descripcion: "Total de pacientes registrados",
-      tendencia: "positiva",
+      tendencia:
+        pacientesT > 0 ? "positiva" : pacientesT < 0 ? "negativa" : "neutra",
       icono: "👥",
     },
     {
       id: "cita",
       titulo: "Citas Hoy",
-      valor: citasHoy.length,
+      valor: activasHoy.length,
       descripcion: "Citas programadas para hoy",
-      tendencia: "neutra",
+      tendencia: citasT > 0 ? "positiva" : citasT < 0 ? "negativa" : "neutra",
       icono: "📅",
     },
     {
@@ -61,16 +100,26 @@ export default function PaginaDashboard() {
       titulo: "Consultas Pendientes",
       valor: programadasHoy.length,
       descripcion: "Por revisar en el sistema",
-      tendencia: "negativa",
+      tendencia:
+        programadasT > 0
+          ? "positiva"
+          : programadasT < 0
+            ? "negativa"
+            : "neutra",
       icono: "⏳",
     },
     {
       id: "disponibilidad",
       titulo: "Disponibilidad",
-      valor: "85%",
+      valor: `${((disponibilidadHoy / capacidadMaximaCitasDia) * 100).toFixed(2)}%`,
       descripcion: "Capacidad actual del centro",
-      tendencia: "positiva",
-      icono: "🏥",
+      tendencia:
+        disponibilidadT > 0
+          ? "positiva"
+          : disponibilidadT < 0
+            ? "negativa"
+            : "neutra",
+      icono: "🏢",
     },
   ];
 

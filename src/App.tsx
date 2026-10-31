@@ -14,6 +14,7 @@ import PaginaSinAcceso from "./pages/PaginaSinAcceso.tsx";
 import RutaProtegida from "./componets/RutaProtegida";
 import MonitorInactividad from "./componets/MonitorInactividad";
 import Layout from "./pages/Layout.tsx";
+import ErrorBoundary from "./componets/ErrorBoundary.tsx";
 
 export default function App() {
   return (
@@ -71,7 +72,14 @@ export default function App() {
           <Route
             element={<RutaProtegida rolesPermitidos={["ADMIN", "GERENCIA"]} />}
           >
-            <Route path="/reportes" Component={PaginaReportes} />
+            <Route
+              path="/reportes"
+              element={
+                <ErrorBoundary>
+                  <PaginaReportes />
+                </ErrorBoundary>
+              }
+            />
           </Route>
         </Route>
       </Routes>

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useAuthStore } from "../stores/useAuthStore";
+import { toast } from "sonner";
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -20,6 +21,11 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       useAuthStore.getState().logout();
       window.location.href = "/login";
+    }
+    if (error.response?.status === 403) {
+      toast.info(
+        "No tienes los permisos necesarios para realizar esta acción.",
+      );
     }
     return Promise.reject(error);
   },
