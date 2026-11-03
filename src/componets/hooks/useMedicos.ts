@@ -17,7 +17,7 @@ export default function useMedicos() {
         setError(null);
 
         // Petición HTTP real a tu API.
-        const res = await api.get("/usuarios");
+        const res = await api.get("/usuarios/medico");
 
         if (!unmounted) {
           const dataFinal = res.data.data || res.data;
