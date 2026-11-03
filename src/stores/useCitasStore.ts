@@ -40,11 +40,14 @@ export const useCitasStore = create<CitasState>()(
           // 1. Hacemos la petición real al backend
           const respuesta = await api.get("/consultas");
 
-          // 2. CREAMOS EL RETRASO ARTIFICIAL (Ej. 2500 milisegundos = 2.5 segundos)
+          // 2. CREAMOS EL RETRASO ARTIFICIAL (Ej. 1000 milisegundos = 1 segundo)
           await new Promise((resolve) => setTimeout(resolve, 1000));
 
           // 3. Una vez pasa el tiempo, guardamos los datos y apagamos el Skeleton
-          set({ citas: respuesta.data, cargando: false });
+          const listaCitas =
+            respuesta.data.data ||
+            (Array.isArray(respuesta.data) ? respuesta.data : []);
+          set({ citas: listaCitas, cargando: false });
         } catch (err) {
           set({ error: extraerMensajeError(err), cargando: false });
         }
