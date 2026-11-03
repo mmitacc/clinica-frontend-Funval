@@ -6,14 +6,13 @@ import type { EstadoPaciente } from "../types/paciente";
 import { ModalNuevoPaciente } from "../componets/paciente/ModalNuevoPaciente";
 import { toast } from "sonner";
 import { extraerMensajeError } from "../lib/errorHandler";
-import { usePacientesStore } from "../stores/pacientesStore";
 import { useFiltrosStore } from "../stores/useFiltrosStore";
-import { useApi } from "../hooks/useApi"; // <-- Importamos tu hook genérico
+import { useApi } from "../hooks/useApi";
 import useDebounce from "../hooks/useDebounce";
 import type { Paciente } from "../types/paciente";
 import SpinnerPaginaPaciente from "../componets/ui/SpinnerPaginaPaciente";
 import { EstadoVacio } from "../componets/ui/EstadoVacio";
-import { Label } from "recharts";
+import { usePacientes } from "../features/pacientes/usePacientes";
 
 export default function PaginaPacientes() {
   // Datos de paciente inicial
@@ -30,20 +29,21 @@ export default function PaginaPacientes() {
     especialidadAsignada: "General",
   };
 
-  // - Variables de estado para Cargar data de pacientes mediante useApi
-  // Notación: cambiamos 'busqueda' por tu estado local que controla el input actual
+  // - Variables de estado para filtros desde el Store Global de Filtros
   const busqueda = useFiltrosStore((s) => s.queryPacientes);
   const estadoPacienteFiltro = useFiltrosStore((s) => s.estadoPacienteFiltro);
   const setEstadoPaciente = useFiltrosStore((s) => s.setEstadoPaciente);
   const setBusqueda = useFiltrosStore((s) => s.setQueryPacientes);
   const resetFiltros = useFiltrosStore((s) => s.resetFiltros);
 
-  // Acciones mutate de Zustand
-  const crearPaciente = usePacientesStore((s) => s.crear);
-  const actualizarPaciente = usePacientesStore((s) => s.actualizar);
-  const eliminarPaciente = usePacientesStore((s) => s.eliminar);
+  // 2. EXTRAEMOS LAS ACCIONES DESDE EL CUSTOM HOOK (Sustituye a usePacientesStore)
+  const {
+    crear: crearPaciente,
+    actualizar: actualizarPaciente,
+    eliminar: eliminarPaciente,
+  } = usePacientes();
 
-  // - Variables de estado para crear un nuevo y update paciente
+  // - Variables de estado locales para interactuar con formularios / modales
   const [modalAbierto, setModalAbierto] = useState<boolean>(false);
   const [esEdicion, setEsEdicion] = useState<boolean>(false);
   const [idPacienteAEditar, setIdPacienteAEditar] = useState<
@@ -51,10 +51,10 @@ export default function PaginaPacientes() {
   >(null);
   const [pacienteData, setPacienteData] = useState(dataInitPaciente);
 
-  // Debounce para filtros combinados de busquedas
+  // Debounce para filtros combinados de búsquedas
   const busquedaDebounce = useDebounce(busqueda, 350);
 
-  // 1. Memorizamos los parámetros HTTP para que useApi no cree bucles infinitos
+  // Memorizamos los parámetros HTTP para evitar bucles infinitos en peticiones
   const apiParams = useMemo(() => {
     return {
       query:
@@ -62,8 +62,7 @@ export default function PaginaPacientes() {
     };
   }, [busquedaDebounce]);
 
-  // 2. INTEGRACIÓN DE USEAPI: Consume el endpoint tipando estrictamente con <Paciente[]>
-  // Devuelve la data limpia, el estado de carga y error, junto a la función 'recargar' para los mutates
+  // INTEGRACIÓN DE USEAPI: Consume el endpoint de pacientes mediante solicitudes HTTP directas
   const {
     data: pacientes,
     cargando,
@@ -71,7 +70,7 @@ export default function PaginaPacientes() {
     recargar,
   } = useApi<Paciente[]>("/pacientes", apiParams);
 
-  // Filtros para pacientes en Frontend basados en la respuesta de useApi
+  // Filtros en Frontend basados en la respuesta en memoria de useApi
   const pacientesFiltrados = useMemo(() => {
     if (!pacientes) return [];
     return pacientes
@@ -94,7 +93,7 @@ export default function PaginaPacientes() {
     setEstadoPaciente(e.target.value as EstadoPacienteFiltro);
   };
 
-  // Renderizado condicional si ocurre un error en useApi
+  // Renderizado condicional si ocurre un error en la obtención HTTP
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[200px] p-6 text-center bg-blue-50 border border-blue-100 rounded-xl max-w-md mx-auto my-4">
@@ -105,7 +104,7 @@ export default function PaginaPacientes() {
           {extraerMensajeError(error)}
         </p>
         <button
-          onClick={recargar} // <-- Usamos recargar de useApi
+          onClick={recargar}
           className="px-5 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium text-sm rounded-lg shadow-sm shadow-blue-200 transition-colors duration-200"
         >
           Reintentar
@@ -113,6 +112,8 @@ export default function PaginaPacientes() {
       </div>
     );
   }
+
+  // Continuación del componente... (handleGuardarPaciente, renderizado JSX, etc.)
 
   // Agregar / Modificar Paciente
   const handleGuardarPaciente = async (
@@ -307,10 +308,10 @@ export default function PaginaPacientes() {
               value={estadoPacienteFiltro}
               onChange={handleEstadoChange}
             >
-              <option value="todos">Estado: Todos</option>
-              <option value="ACTIVO">Estado: Actico</option>
-              <option value="INACTIVO">Estado: Inactivo</option>
-              <option value="EN_ESPERA">Estado: Espera</option>
+              <option value="todos">Todos</option>
+              <option value="ACTIVO">Activos</option>
+              <option value="INACTIVO">Inactivos</option>
+              <option value="EN_ESPERA">En_Espera</option>
             </select>
           </div>
           <div className="text-xs font-medium text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 self-start sm:self-auto">

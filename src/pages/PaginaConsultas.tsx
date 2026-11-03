@@ -1,22 +1,21 @@
 import { useEffect, useState, useMemo } from "react";
-import { useCitasStore } from "../stores/useCitasStore";
+import { useCitas } from "../features/citas/useCitas";
 import type { Consulta } from "../types/consulta";
 import type { RespuestaPaginado } from "../types/api";
 import EncabezadoPagina from "../componets/EncabezadoPagina";
 import SkeletonPaginaConsultas from "../componets/ui/SkeletonPaginaConsultas";
 
 export default function PaginaConsultas() {
-  // 1. Consumo de estados y acciones de Zustand
-  const storeCitas = useCitasStore((state) => state.citas);
-  const cargando = useCitasStore((state) => state.cargando);
-  const error = useCitasStore((state) => state.error);
-  const cargarTodas = useCitasStore((state) => state.cargarTodas);
+  // 2. Consumo de estados y acciones desacoplados a través del Custom Hook
+  // Nota: Mapeamos 'citas' como 'storeCitas' para mantener intacta tu lógica de normalización de abajo
+  const { citas: storeCitas, cargando, error } = useCitas();
 
   // Estados para la paginación y filtros
   const [paginaActual, setPaginaActual] = useState<number>(1);
   const [filtroEstado, setFiltroEstado] = useState<string>("TODOS");
   const limitePorPagina = 5;
 
+  // Normalización defensiva de la estructura de datos que retorna la API
   const citas = useMemo(() => {
     if (!storeCitas) return [];
     if (Array.isArray(storeCitas)) return storeCitas;
@@ -30,17 +29,12 @@ export default function PaginaConsultas() {
     return [];
   }, [storeCitas]);
 
-  // 2. Disparar la carga de la API al montar el componente
-  useEffect(() => {
-    cargarTodas();
-  }, [cargarTodas]);
-
   // 3. Resetear a la página 1 cuando el filtro cambie
   useEffect(() => {
     setPaginaActual(1);
   }, [filtroEstado]);
 
-  // 4. Filtrado de datos (Ahora blindado ya que 'citas' es garantizadamente un Array)
+  // 4. Filtrado de datos (Blindado ya que 'citas' es garantizadamente un Array)
   const datosFiltrados = useMemo(() => {
     if (filtroEstado === "TODOS") return citas;
     return citas.filter((cita: Consulta) => cita.estado === filtroEstado);
