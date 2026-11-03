@@ -9,14 +9,6 @@ export default function PaginaDashboard() {
   // Estado global del sistema, para interactuar con StatusBadge
   const [enMantenimiento, setEnMantenimiento] = useState<boolean>(false);
 
-  // Estado para los pacientes registrados
-  const [totalPacientes, setTotalPacientes] = useState<number>(0);
-  useEffect(() => {
-    api.get("/pacientes").then((res) => {
-      setTotalPacientes(res.data.total ?? 0);
-    });
-  }, []);
-
   // Estado para los citas registradas
   const [totalConsultas, setTotalConsultas] = useState<Consulta[]>([]);
   useEffect(() => {
