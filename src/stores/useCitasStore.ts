@@ -100,7 +100,6 @@ export const useCitasStore = create<CitasState>()(
       // Crea una nueva cita en el backend y la añade al listado local
       agregarCita: async (nuevaCita) => {
         set({ cargando: true, error: null });
-        console.log("nuevaCita => ", nuevaCita);
         const { estado, ...newCita } = nuevaCita;
         try {
           const res = await api.post("/consultas", newCita);

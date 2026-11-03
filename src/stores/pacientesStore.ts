@@ -77,7 +77,6 @@ export const usePacientesStore = create<PacientesState>()(
 
       // Crear un nuevo paciente en el servidor
       crear: async (nuevoPaciente) => {
-        console.log("nuevoPaciente => ", nuevoPaciente);
 
         set({ cargando: true });
         try {
@@ -100,11 +99,8 @@ export const usePacientesStore = create<PacientesState>()(
 
       // Actualizar un paciente existente (Corregido a singular)
       actualizar: async (id, datosActualizados) => {
-        console.log('datosActualizados => ',datosActualizados);
         
-        set({ cargando: true });
-        console.log('datosActualizados => ',datosActualizados);
-        
+        set({ cargando: true });      
         try {
           const res = await api.patch(`/pacientes/${id}`, datosActualizados);
           const pacienteEditado = {

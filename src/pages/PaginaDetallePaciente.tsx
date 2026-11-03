@@ -30,8 +30,6 @@ export default function PaginaDetallePaciente() {
     obtenerDetallePaciente();
   }, [id]);
 
-  console.log("PACIENTE: ", paciente);
-
   if (cargando) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[300px] p-6 space-y-4">

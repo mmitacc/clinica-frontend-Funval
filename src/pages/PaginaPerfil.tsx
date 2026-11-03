@@ -8,7 +8,6 @@ import { perfilService, type PerfilFormData } from "../services/perfil";
 export function PaginaPerfil({ onClose }: { onClose?: () => void }) {
   const { usuario, actualizarPerfil } = useAuthStore();
   const [archivoFoto, setArchivoFoto] = useState<File | null>(null);
-  console.log("usuario => ", usuario);
 
   const {
     register,
