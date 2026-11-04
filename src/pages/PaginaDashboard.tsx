@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { MetricCard } from "../componets/metrica/MetricCard";
 import { StatusBadge } from "../componets/metrica/StatusBadge";
 import type { Metrica } from "../types";
@@ -16,86 +16,152 @@ export default function PaginaDashboard() {
       setTotalConsultas(res.data.data ?? []);
     });
   }, []);
-  // Citas Datos de Hoy y Ayer
-  const hoy = new Date();
-  const fechaHoyString = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
-  const ayer = new Date(hoy);
-  ayer.setDate(hoy.getDate() - 1); // JavaScript ajusta meses y años automáticamente aquí
-  const fechaAyerString = `${ayer.getFullYear()}-${String(ayer.getMonth() + 1).padStart(2, "0")}-${String(ayer.getDate()).padStart(2, "0")}`;
-
-  // Filtros de citas de Hoy y Ayer
-  const activasHoy = totalConsultas.filter((consulta) => {
-    return (
-      consulta.fecha === fechaHoyString &&
-      (consulta.estado === "PROGRAMADA" || consulta.estado === "COMPLETADA")
-    );
-  });
-  const programadasHoy = totalConsultas.filter((consulta) => {
-    return (
-      consulta.fecha === fechaHoyString && consulta.estado === "PROGRAMADA"
-    );
-  });
-  const activasAyer = totalConsultas.filter((consulta) => {
-    return (
-      consulta.fecha === fechaAyerString &&
-      (consulta.estado === "PROGRAMADA" || consulta.estado === "COMPLETADA")
-    );
-  });
-  const programadasAyer = totalConsultas.filter((consulta) => {
-    return (
-      consulta.fecha === fechaAyerString && consulta.estado === "PROGRAMADA"
-    );
-  });
 
   // Capacidad máxima de la Clínica
   const capacidadMaximaCitasDia = 16;
 
-  // Paciente únicos del día
-  const pacientesUnicosSetHoy = new Set(
-    activasHoy.map((consulta) => consulta.id_paciente),
-  );
-  const pacientesUnicosSetAyer = new Set(
-    activasAyer.map((consulta) => consulta.id_paciente),
-  );
+  // Memorizar todas las métricas calculadas
+  const metricas = useMemo(() => {
+    // 1. Obtener fechas de Hoy y Ayer
+    const hoy = new Date();
+    const fechaHoyString = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
 
-  // Tendencias
-  const pacientesT: number =
-    pacientesUnicosSetHoy.size - pacientesUnicosSetAyer.size;
-  const citasT: number = activasHoy.length - activasAyer.length;
-  const programadasT: number = programadasHoy.length - programadasAyer.length;
-  const disponibilidadHoy: number = capacidadMaximaCitasDia - activasHoy.length;
-  const disponibilidadAyer: number =
-    capacidadMaximaCitasDia - activasAyer.length;
-  const disponibilidadT: number = disponibilidadHoy - disponibilidadAyer;
+    const ayer = new Date(hoy);
+    ayer.setDate(hoy.getDate() - 1);
+    const fechaAyerString = `${ayer.getFullYear()}-${String(ayer.getMonth() + 1).padStart(2, "0")}-${String(ayer.getDate()).padStart(2, "0")}`;
+
+    // 2. Filtros de citas de Hoy y Ayer
+    const activasHoy = totalConsultas.filter(
+      (consulta) =>
+        consulta.fecha === fechaHoyString &&
+        (consulta.estado === "PROGRAMADA" || consulta.estado === "COMPLETADA"),
+    );
+
+    const programadasHoy = totalConsultas.filter(
+      (consulta) =>
+        consulta.fecha === fechaHoyString && consulta.estado === "PROGRAMADA",
+    );
+
+    const activasAyer = totalConsultas.filter(
+      (consulta) =>
+        consulta.fecha === fechaAyerString &&
+        (consulta.estado === "PROGRAMADA" || consulta.estado === "COMPLETADA"),
+    );
+
+    const programadasAyer = totalConsultas.filter(
+      (consulta) =>
+        consulta.fecha === fechaAyerString && consulta.estado === "PROGRAMADA",
+    );
+
+    // 3. Pacientes únicos
+    const pacientesUnicosSetHoy = new Set(activasHoy.map((c) => c.id_paciente));
+    const pacientesUnicosSetAyer = new Set(
+      activasAyer.map((c) => c.id_paciente),
+    );
+
+    // 4. Disponibilidad
+    const disponibilidadHoy = capacidadMaximaCitasDia - activasHoy.length;
+    const disponibilidadAyer = capacidadMaximaCitasDia - activasAyer.length;
+
+    // 5. Retornar solo los resultados que necesitan los componentes
+    return {
+      pacientesHoy: pacientesUnicosSetHoy.size,
+      citasHoy: activasHoy.length,
+      programadasHoy: programadasHoy.length,
+      disponibilidadHoy,
+      pacientesT: pacientesUnicosSetHoy.size - pacientesUnicosSetAyer.size,
+      citasT: activasHoy.length - activasAyer.length,
+      programadasT: programadasHoy.length - programadasAyer.length,
+      disponibilidadT: disponibilidadHoy - disponibilidadAyer,
+    };
+  }, [totalConsultas]); // Solo se vuelve a calcular si cambia el array de consultas
+
+  // // Citas Datos de Hoy y Ayer
+  // const hoy = new Date();
+  // const fechaHoyString = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
+  // const ayer = new Date(hoy);
+  // ayer.setDate(hoy.getDate() - 1); // JavaScript ajusta meses y años automáticamente aquí
+  // const fechaAyerString = `${ayer.getFullYear()}-${String(ayer.getMonth() + 1).padStart(2, "0")}-${String(ayer.getDate()).padStart(2, "0")}`;
+
+  // // Filtros de citas de Hoy y Ayer
+  // const activasHoy = totalConsultas.filter((consulta) => {
+  //   return (
+  //     consulta.fecha === fechaHoyString &&
+  //     (consulta.estado === "PROGRAMADA" || consulta.estado === "COMPLETADA")
+  //   );
+  // });
+  // const programadasHoy = totalConsultas.filter((consulta) => {
+  //   return (
+  //     consulta.fecha === fechaHoyString && consulta.estado === "PROGRAMADA"
+  //   );
+  // });
+  // const activasAyer = totalConsultas.filter((consulta) => {
+  //   return (
+  //     consulta.fecha === fechaAyerString &&
+  //     (consulta.estado === "PROGRAMADA" || consulta.estado === "COMPLETADA")
+  //   );
+  // });
+  // const programadasAyer = totalConsultas.filter((consulta) => {
+  //   return (
+  //     consulta.fecha === fechaAyerString && consulta.estado === "PROGRAMADA"
+  //   );
+  // });
+
+  // // Paciente únicos del día
+  // const pacientesUnicosSetHoy = new Set(
+  //   activasHoy.map((consulta) => consulta.id_paciente),
+  // );
+  // const pacientesUnicosSetAyer = new Set(
+  //   activasAyer.map((consulta) => consulta.id_paciente),
+  // );
+
+  // // Tendencias
+  // const pacientesT: number =
+  //   pacientesUnicosSetHoy.size - pacientesUnicosSetAyer.size;
+  // const citasT: number = activasHoy.length - activasAyer.length;
+  // const programadasT: number = programadasHoy.length - programadasAyer.length;
+  // const disponibilidadHoy: number = capacidadMaximaCitasDia - activasHoy.length;
+  // const disponibilidadAyer: number =
+  //   capacidadMaximaCitasDia - activasAyer.length;
+  // const disponibilidadT: number = disponibilidadHoy - disponibilidadAyer;
 
   // Data de Metricas Clínicas
   const metricasClinica: Metrica[] = [
     {
       id: "paciente",
       titulo: "Pacientes",
-      valor: pacientesUnicosSetHoy.size,
+      valor: metricas.pacientesHoy,
       descripcion: "Total de pacientes registrados",
       tendencia:
-        pacientesT > 0 ? "positiva" : pacientesT < 0 ? "negativa" : "neutra",
+        metricas.pacientesT > 0
+          ? "positiva"
+          : metricas.pacientesT < 0
+            ? "negativa"
+            : "neutra",
       icono: "👥",
     },
     {
       id: "cita",
       titulo: "Citas Hoy",
-      valor: activasHoy.length,
+      valor: metricas.citasHoy,
       descripcion: "Citas programadas para hoy",
-      tendencia: citasT > 0 ? "positiva" : citasT < 0 ? "negativa" : "neutra",
+      tendencia:
+        metricas.citasT > 0
+          ? "positiva"
+          : metricas.citasT < 0
+            ? "negativa"
+            : "neutra",
       icono: "📅",
     },
     {
       id: "consulta",
       titulo: "Consultas Pendientes",
-      valor: programadasHoy.length,
+      valor: metricas.programadasHoy,
       descripcion: "Por revisar en el sistema",
       tendencia:
-        programadasT > 0
+        metricas.programadasT > 0
           ? "positiva"
-          : programadasT < 0
+          : metricas.programadasT < 0
             ? "negativa"
             : "neutra",
       icono: "⏳",
@@ -103,12 +169,12 @@ export default function PaginaDashboard() {
     {
       id: "disponibilidad",
       titulo: "Disponibilidad",
-      valor: `${((disponibilidadHoy / capacidadMaximaCitasDia) * 100).toFixed(2)}%`,
+      valor: `${((metricas.disponibilidadHoy / capacidadMaximaCitasDia) * 100).toFixed(2)}%`,
       descripcion: "Capacidad actual del centro",
       tendencia:
-        disponibilidadT > 0
+        metricas.disponibilidadT > 0
           ? "positiva"
-          : disponibilidadT < 0
+          : metricas.disponibilidadT < 0
             ? "negativa"
             : "neutra",
       icono: "🏢",
